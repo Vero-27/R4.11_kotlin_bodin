@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.to_do_list.android.afficherDonnees
 import com.example.to_do_list.android.prendreDonneesDuFichier
+import com.example.to_do_list.android.supprimerDonneesDuFichier
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FileInputStream
@@ -63,10 +64,12 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                 .verticalScroll(rememberScrollState())){
                 Text("Taches")
                 val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
+                println("donnees" + donnees)
                 afficherDonnees(tableau = donnees)
             }
 
-            Button(
+            Row {
+                Button(
                 onClick = {
                     navController.navigate("ajouterTaches")
                 },
@@ -78,8 +81,22 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                     text = "+",
                     fontSize = 25.sp,
                     modifier = Modifier.size(width = 50.dp, height = 50.dp)
-                )
-            }
+                )}
+
+                Button(
+                    onClick = {
+                        supprimerDonneesDuFichier("myfile", applicationContexte)
+                    },
+                    shape = RoundedCornerShape(50.dp),
+                    colors = ButtonDefaults.buttonColors(contentColor = Color.Gray),
+                    modifier = Modifier.size(width = 50.dp, height = 50.dp)
+                ) {
+                    Text(
+                        text = "-",
+                        fontSize = 25.sp,
+                        modifier = Modifier.size(width = 50.dp, height = 50.dp)
+                    )
+            }}
 
 
         }

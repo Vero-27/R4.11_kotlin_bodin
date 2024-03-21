@@ -11,16 +11,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import org.json.JSONArray
-import org.json.JSONObject
-import java.io.FileInputStream
-import java.io.FileOutputStream
-
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.to_do_list.android.view.AjouterTaches
 import com.example.to_do_list.android.view.ListeTaches
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.PrintWriter
+
 
 class MainActivity : ComponentActivity(){
 
@@ -33,7 +34,6 @@ class MainActivity : ComponentActivity(){
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ){
-
                 val navController = rememberNavController ()
 
                 NavHost (navController=navController, startDestination = "listeTaches"){
@@ -73,8 +73,13 @@ fun prendreDonneesDuFichier (fileName: String, context : Context): JSONArray {
 
     val inputAsString = inputStream.readBytes().toString(Charsets.UTF_8)
     var json = JSONArray()
+    println("prendre")
     if (inputAsString.isNotEmpty()){
+        println("if")
         json = JSONArray(inputAsString)
+
+        println("ok")
+
     }
     else {
         //json = json.a("Home", {})
@@ -83,6 +88,25 @@ fun prendreDonneesDuFichier (fileName: String, context : Context): JSONArray {
     return json
 }
 
+fun supprimerDonneesDuFichier(fileName: String, context : Context){
+    val outputStream: FileOutputStream
+
+    try {
+        outputStream = context.openFileOutput(fileName, ComponentActivity.MODE_PRIVATE)
+        val pw = PrintWriter(fileName)
+        pw.close()
+        outputStream.close()
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+
+    val string =
+        "[\n" +
+
+                "  ]\n"
+
+    mettreDonneesDansFichier(string, fileName, context)
+}
 
 
 /*@Composable
@@ -173,6 +197,7 @@ fun afficherDonnees (tableau: JSONArray){
         //val final = res.getString("Task")
         Row {
             Text (tache + " : " + date)
+
 
         }
     }
