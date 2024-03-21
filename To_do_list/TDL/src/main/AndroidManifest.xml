@@ -3,17 +3,20 @@
 
     <application
         android:allowBackup="false"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme"
         android:icon="@mipmap/ic_launcher"
-        android:label="To do list">
+        android:label="To do list"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
-</manifest> 
+
+</manifest>
