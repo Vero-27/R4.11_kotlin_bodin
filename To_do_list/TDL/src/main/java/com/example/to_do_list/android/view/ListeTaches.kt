@@ -61,11 +61,11 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
             Column (modifier = Modifier
                 .background(Color.LightGray)
                 .size(400.dp)
-                .verticalScroll(rememberScrollState())){
+                //.verticalScroll(rememberScrollState())
+                    ){
                 Text("Taches")
                 val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
-                println("donnees" + donnees)
-                afficherDonnees(tableau = donnees)
+                afficherDonnees(tableau = donnees, applicationContexte)
             }
 
             Row {

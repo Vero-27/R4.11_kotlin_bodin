@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
+    implementation(libs.play.services.tflite.acceleration.service)
     debugImplementation(libs.compose.ui.tooling)
 
     implementation("com.squareup.moshi:moshi-kotlin:1.11.0")

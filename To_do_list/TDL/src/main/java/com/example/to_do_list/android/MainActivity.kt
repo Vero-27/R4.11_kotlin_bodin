@@ -4,18 +4,46 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Row
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissState
+import androidx.compose.material3.DismissValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.to_do_list.android.view.AjouterTaches
 import com.example.to_do_list.android.view.ListeTaches
+import kotlinx.coroutines.delay
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FileInputStream
@@ -73,16 +101,8 @@ fun prendreDonneesDuFichier (fileName: String, context : Context): JSONArray {
 
     val inputAsString = inputStream.readBytes().toString(Charsets.UTF_8)
     var json = JSONArray()
-    println("prendre")
     if (inputAsString.isNotEmpty()){
-        println("if")
         json = JSONArray(inputAsString)
-
-        println("ok")
-
-    }
-    else {
-        //json = json.a("Home", {})
     }
 
     return json
@@ -108,97 +128,131 @@ fun supprimerDonneesDuFichier(fileName: String, context : Context){
     mettreDonneesDansFichier(string, fileName, context)
 }
 
-
-/*@Composable
-fun CreerBouton (tasks: Tableau){
-    //var text by remember { mutableStateOf("") }
-    Column {
-        //Text(text)
-        Button(
-            onClick = {
-                /*val string1 = "1"
-                val string2 = "2"
-                val string3 = "3"
-                tasks.ajouterElemATableau(string1, string2, string3)
-
-                text = string1 + ":" + string3*/
-                val navigate = Intent (tMainActivity, MainActivity2::class.java)
-                startActivity(navigate)
-            },
-            shape = RoundedCornerShape(50.dp),
-            colors = ButtonDefaults.buttonColors(contentColor = Color.Gray),
-            modifier = Modifier.size(width = 50.dp, height = 50.dp)
-        ) {
-            Text(
-                text = "+",
-                fontSize = 25.sp,
-                modifier = Modifier.size(width = 50.dp, height = 50.dp)
-            )
+fun supprimerUneDonneeDuFichier (fileName: String, context: Context, index : Int){
+    val donneesActuelles = prendreDonneesDuFichier(fileName, context)
+    for (i in 0 until donneesActuelles.length()){
+        val task = donneesActuelles[i]
+        val taskString = task.toString()
+        val temp = JSONObject(taskString)
+        val taskIndex = temp.getString("Index")
+        if (taskIndex==index.toString()){
+            donneesActuelles.remove(i)
         }
     }
+    mettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
 }
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
-fun TopContent() {
+fun afficherDonnees (tableau: JSONArray, context : Context){
 
-    LazyColumn {
-    stickyHeader {
-        Surface(Modifier.fillParentMaxWidth()) {
-            Text(
-                text = "To do list",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .padding(
-                        top = 16.dp,
-                        bottom = 8.dp
-                    )
-                    .fillMaxWidth()
-                    .background(Color.Magenta)
-            )
-        }
-}}}
-
-@Composable
-fun CreateTask (){
-    Text (
-        text = "Tache"
-    )
-}
-
-@Composable
-fun AffichageGlobal (tasks : Tableau){
-    Box {
-        Column {
-            TopContent();
-            Column (modifier = Modifier
-                .background(Color.LightGray)
-                .size(400.dp)
-                .verticalScroll(rememberScrollState())){
-                tasks.afficher()
-            }
-
-            CreerBouton(tasks);
-
-        }
+    val listeDeTaches = remember {
+        mutableStateListOf(listOf("",1))
     }
-}*/
-
-@Composable
-fun afficherDonnees (tableau: JSONArray){
-    for (i in 0 until tableau.length()){
-        val task = tableau [i]
+    listeDeTaches.removeAll(listeDeTaches)
+    for (i in 0 until tableau.length()) {
+        val task = tableau[i]
         val taskString = task.toString()
         val temp = JSONObject(taskString)
         val tache = temp.getString("Task")
         val date = temp.getString("Time")
+        listeDeTaches.add(listOf(tache + " : " + date, i))
+    }
 
-        //val final = res.getString("Task")
-        Row {
-            Text (tache + " : " + date)
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        items(
+            items = listeDeTaches,
+            key = { it }
+        ) { tache ->
+            SwipeToDeleteContainer(
+                item = tache,
+                onDelete = {
+                    listeDeTaches.removeAt(tache[1] as Int)
+                    supprimerUneDonneeDuFichier("myfile", context, tache[1] as Int)
 
-
+                }
+            ) { tache->
+                Text(
+                    text = tache[0] as String,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(16.dp)
+                )
+            }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun <T> SwipeToDeleteContainer(
+    item: T,
+    onDelete: (T) -> Unit,
+    animationDuration: Int = 500,
+    content: @Composable (T) -> Unit
+) {
+    var isRemoved by remember {
+        mutableStateOf(false)
+    }
+    val state = rememberDismissState(
+        confirmValueChange = { value ->
+            if (value == DismissValue.DismissedToStart) {
+                isRemoved = true
+                true
+            } else {
+                false
+            }
+        }
+    )
+
+    LaunchedEffect(key1 = isRemoved) {
+        if(isRemoved) {
+            delay(animationDuration.toLong())
+            onDelete(item)
+        }
+    }
+
+    AnimatedVisibility(
+        visible = !isRemoved,
+        exit = shrinkVertically(
+            animationSpec = tween(durationMillis = animationDuration),
+            shrinkTowards = Alignment.Top
+        ) + fadeOut()
+    ) {
+        SwipeToDismiss(
+            state = state,
+            background = {
+                DeleteBackground(swipeDismissState = state)
+            },
+            dismissContent = { content(item) },
+            directions = setOf(DismissDirection.EndToStart)
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DeleteBackground(
+    swipeDismissState: DismissState
+) {
+    val color = if (swipeDismissState.dismissDirection == DismissDirection.EndToStart) {
+        Color.Red
+    } else Color.Transparent
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color)
+            .padding(16.dp),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = null,
+            tint = Color.White
+        )
     }
 }
