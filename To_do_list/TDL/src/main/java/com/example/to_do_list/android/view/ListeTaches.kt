@@ -15,9 +15,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,7 +71,7 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                     ){
                 Text("Taches")
                 val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
-                afficherDonnees(tableau = donnees, applicationContexte)
+                afficherDonnees(tableau = donnees, applicationContexte, "En cours")
             }
 
             Row {
@@ -97,6 +103,34 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                         modifier = Modifier.size(width = 50.dp, height = 50.dp)
                     )
             }}
+            NavigationBar {
+                NavigationBarItem(
+                    selected = true,
+                    onClick= {
+                        navController.navigate("listeTaches")
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = null
+                        )
+                    },
+                    label = {Text("En cours")})
+                NavigationBarItem(
+                    selected = false,
+                    onClick= {
+                        navController.navigate("listeTachesFinies")
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null
+                        )
+                    },
+                    label = {Text("Finie")})
+
+
+            }
 
 
         }

@@ -2,6 +2,8 @@ package com.example.to_do_list.android
 
 import android.content.Context
 import android.os.Bundle
+import android.view.MotionEvent
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissState
@@ -25,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.SwipeToDismissDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
@@ -37,12 +41,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.to_do_list.android.view.AjouterTaches
 import com.example.to_do_list.android.view.ListeTaches
+import com.example.to_do_list.android.view.ListesTachesFinies
 import kotlinx.coroutines.delay
 import org.json.JSONArray
 import org.json.JSONObject
@@ -58,6 +64,7 @@ class MainActivity : ComponentActivity(){
 
         setContent {
             MyApplicationTheme {
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -75,7 +82,14 @@ class MainActivity : ComponentActivity(){
                     ){
                         AjouterTaches(navController, applicationContext)
                     }
+                    composable(
+                        route = "listeTachesFinies"
+                    ){
+                        ListesTachesFinies(navController, applicationContext)
+                    }
                 }}
+
+
             }
                 }
             }
@@ -121,42 +135,86 @@ fun supprimerDonneesDuFichier(fileName: String, context : Context){
     }
 
     val string =
-        "[\n" +
-
-                "  ]\n"
+        "[\n" + "  ]\n"
 
     mettreDonneesDansFichier(string, fileName, context)
 }
 
 fun supprimerUneDonneeDuFichier (fileName: String, context: Context, index : Int){
     val donneesActuelles = prendreDonneesDuFichier(fileName, context)
+    println(donneesActuelles.length())
+    if (donneesActuelles.length() == 1){
+        supprimerDonneesDuFichier(fileName, context)
+    }else {
+        for (i in 0 until donneesActuelles.length()){
+            val task = donneesActuelles[i]
+            val taskString = task.toString()
+            val temp = JSONObject(taskString)
+            val taskIndex = temp.getString("Index")
+            if (taskIndex.toInt()==index){
+                donneesActuelles.remove(index)
+                mettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
+                break
+            }
+        }
+
+
+    }
+
+}
+
+fun changerStatusTache (fileName: String, context: Context, status : String, index : Int){
+    var donneesActuelles = prendreDonneesDuFichier(fileName, context)
+    //supprimerUneDonneeDuFichier(fileName, context, index)
     for (i in 0 until donneesActuelles.length()){
         val task = donneesActuelles[i]
         val taskString = task.toString()
         val temp = JSONObject(taskString)
         val taskIndex = temp.getString("Index")
         if (taskIndex==index.toString()){
-            donneesActuelles.remove(i)
+            val new = JSONObject()
+            val task = temp.getString("Task")
+            val description = temp.getString("Description")
+            val date = temp.getString("Date")
+
+            supprimerUneDonneeDuFichier(fileName, context, index)
+            new.put("Task", task)
+            new.put("Description", description )
+            new.put("Date", date)
+            new.put("Status", status)
+            new.put("Index", index)
+
+            donneesActuelles = prendreDonneesDuFichier(fileName, context)
+            donneesActuelles.put(new)
+            break
+            //supprimerUneDonneeDuFichier(fileName, context, index)
         }
     }
     mettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
+    println(donneesActuelles.toString())
 }
 
 @Composable
-fun afficherDonnees (tableau: JSONArray, context : Context){
+fun afficherDonnees (tableau: JSONArray, context : Context, contraintes : String){
 
     val listeDeTaches = remember {
-        mutableStateListOf(listOf("",1))
+        mutableStateListOf(listOf("", 1, 1))
     }
     listeDeTaches.removeAll(listeDeTaches)
     for (i in 0 until tableau.length()) {
         val task = tableau[i]
         val taskString = task.toString()
         val temp = JSONObject(taskString)
-        val tache = temp.getString("Task")
-        val date = temp.getString("Time")
-        listeDeTaches.add(listOf(tache + " : " + date, i))
+        val status = temp.getString("Status")
+        if (status == contraintes) {
+            val tache = temp.getString("Task")
+            val description = temp.getString("Description")
+            val date = temp.getString("Date")
+            val index = temp.getString("Index")
+            listeDeTaches.add(listOf(tache + " - " + description  + " : " + date, index.toInt(), i))
+        }
     }
+
 
     LazyColumn(
         modifier = Modifier
@@ -167,13 +225,24 @@ fun afficherDonnees (tableau: JSONArray, context : Context){
             key = { it }
         ) { tache ->
             SwipeToDeleteContainer(
+                applicationContext = context,
+                contraintes = contraintes,
                 item = tache,
                 onDelete = {
-                    listeDeTaches.removeAt(tache[1] as Int)
-                    supprimerUneDonneeDuFichier("myfile", context, tache[1] as Int)
+                    listeDeTaches.removeAt(tache[2] as Int)
+                    if (contraintes == "En cours"){
+
+                        changerStatusTache("myfile", context, "Finie", tache[1] as Int)
+                        //supprimerUneDonneeDuFichier("myfile", context, tache[1] as Int)
+
+                    } else {
+                        supprimerUneDonneeDuFichier("myfile", context, tache[1] as Int)
+                    }
 
                 }
-            ) { tache->
+
+        )
+            { tache->
                 Text(
                     text = tache[0] as String,
                     modifier = Modifier
@@ -182,6 +251,7 @@ fun afficherDonnees (tableau: JSONArray, context : Context){
                         .padding(16.dp)
                 )
             }
+
         }
     }
 }
@@ -189,17 +259,20 @@ fun afficherDonnees (tableau: JSONArray, context : Context){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> SwipeToDeleteContainer(
+    applicationContext : Context,
+    contraintes: String,
     item: T,
-    onDelete: (T) -> Unit,
+    onDelete: (T)-> Unit,
     animationDuration: Int = 500,
-    content: @Composable (T) -> Unit
+    content: @Composable (T) -> Unit,
+
 ) {
     var isRemoved by remember {
         mutableStateOf(false)
     }
     val state = rememberDismissState(
         confirmValueChange = { value ->
-            if (value == DismissValue.DismissedToStart) {
+            if (value == DismissValue.DismissedToEnd) {
                 isRemoved = true
                 true
             } else {
@@ -212,47 +285,83 @@ fun <T> SwipeToDeleteContainer(
         if(isRemoved) {
             delay(animationDuration.toLong())
             onDelete(item)
+
+            /*if (toTheRight){
+                Toast.makeText(applicationContext, "Tache validée", Toast.LENGTH_SHORT).show ()
+            }
+            else {
+                Toast.makeText(applicationContext, "Tache effacée", Toast.LENGTH_SHORT).show ()
+            }*/
+
         }
     }
 
-    AnimatedVisibility(
-        visible = !isRemoved,
-        exit = shrinkVertically(
-            animationSpec = tween(durationMillis = animationDuration),
-            shrinkTowards = Alignment.Top
-        ) + fadeOut()
-    ) {
-        SwipeToDismiss(
-            state = state,
-            background = {
-                DeleteBackground(swipeDismissState = state)
-            },
-            dismissContent = { content(item) },
-            directions = setOf(DismissDirection.EndToStart)
-        )
-    }
-}
+
+        AnimatedVisibility(
+            visible = !isRemoved ,
+            exit = shrinkVertically(
+                animationSpec = tween(durationMillis = animationDuration),
+                shrinkTowards = Alignment.Top
+            ) + fadeOut()
+        ) {
+            SwipeToDismiss(
+
+                state = state,
+                background = {
+                    background(swipeDismissState = state, contraintes = contraintes)
+                },
+                dismissContent = { content(item) },
+                directions = setOf(DismissDirection.StartToEnd)
+            )
+
+        }}
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DeleteBackground(
-    swipeDismissState: DismissState
+fun background(
+    swipeDismissState: DismissState, contraintes: String
 ) {
-    val color = if (swipeDismissState.dismissDirection == DismissDirection.EndToStart) {
-        Color.Red
-    } else Color.Transparent
+    val color = if (swipeDismissState.dismissDirection == DismissDirection.StartToEnd) {
+         if (contraintes == "En cours"){
+             Color.Green
+         }
+         else {
+             Color.Red
+         }
+        }
+    else {
+        Color.Transparent
+    }
+
+    val icon =if (swipeDismissState.dismissDirection == DismissDirection.StartToEnd) {
+        if (contraintes == "En cours"){
+            Icons.Default.Check
+        }
+        else {
+            Icons.Default.Delete
+        }
+    }
+    else {
+        null
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(color)
             .padding(16.dp),
-        contentAlignment = Alignment.CenterEnd
+        contentAlignment = Alignment.CenterStart
     ) {
-        Icon(
-            imageVector = Icons.Default.Delete,
-            contentDescription = null,
-            tint = Color.White
-        )
+
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.White,
+            )
+        }
     }
 }
