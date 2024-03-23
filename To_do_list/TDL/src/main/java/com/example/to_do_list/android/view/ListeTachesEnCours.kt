@@ -1,8 +1,6 @@
 package com.example.to_do_list.android.view
 
 import android.content.Context
-import android.content.Intent
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,11 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,15 +29,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.to_do_list.android.afficherDonnees
 import com.example.to_do_list.android.prendreDonneesDuFichier
 import com.example.to_do_list.android.supprimerDonneesDuFichier
-import org.json.JSONArray
+import com.example.to_do_list.android.verifierStatus
 import org.json.JSONObject
-import java.io.FileInputStream
-import java.io.FileOutputStream
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -71,6 +65,15 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                     ){
                 Text("Taches")
                 val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
+                for (i in 0 until donnees.length()){
+                    val task = donnees[i]
+                    val taskString = task.toString()
+                    val temp = JSONObject(taskString)
+                    val date = temp.getString("Date");
+                    val index = temp.getString("Index")
+                    val status = temp.getString("Status")
+                    verifierStatus(date, index.toInt(), status, applicationContexte)
+                }
                 afficherDonnees(tableau = donnees, applicationContexte, "En cours")
             }
 
@@ -128,6 +131,18 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                         )
                     },
                     label = {Text("Finie")})
+                NavigationBarItem(
+                    selected = false,
+                    onClick = {
+                        navController.navigate("listeTachesEnRetard")
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null
+                        )
+                    },
+                    label = { Text("En retard") })
 
 
             }

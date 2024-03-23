@@ -1,5 +1,7 @@
 package com.example.to_do_list.android
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.os.Bundle
 import android.view.MotionEvent
@@ -48,13 +50,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.to_do_list.android.view.AjouterTaches
 import com.example.to_do_list.android.view.ListeTaches
-import com.example.to_do_list.android.view.ListesTachesFinies
+import com.example.to_do_list.android.view.ListeTachesEnRetard
+import com.example.to_do_list.android.view.ListeTachesFinies
 import kotlinx.coroutines.delay
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.PrintWriter
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
 
 
 class MainActivity : ComponentActivity(){
@@ -85,7 +91,12 @@ class MainActivity : ComponentActivity(){
                     composable(
                         route = "listeTachesFinies"
                     ){
-                        ListesTachesFinies(navController, applicationContext)
+                        ListeTachesFinies(navController, applicationContext)
+                    }
+                    composable(
+                        route = "listeTachesEnRetard"
+                    ){
+                        ListeTachesEnRetard(navController, applicationContext)
                     }
                 }}
 
@@ -163,6 +174,17 @@ fun supprimerUneDonneeDuFichier (fileName: String, context: Context, index : Int
 
 }
 
+fun verifierDate (date : String): Boolean {
+    //val simpleDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+    //println(date)
+    val jourRenseigne = date[8] + date[9].toString()
+    val moisRenseigne = date[5] + date[6].toString()
+    val anneeRenseignee = date[0] + date[1].toString() + date[2].toString() + date[3].toString()
+    var dateRenseignee = LocalDate.of(anneeRenseignee.toInt(), moisRenseigne.toInt(), jourRenseigne.toInt())
+    val dateActuelle = LocalDate.now()
+    return dateRenseignee.isBefore(dateActuelle)
+}
+
 fun changerStatusTache (fileName: String, context: Context, status : String, index : Int){
     var donneesActuelles = prendreDonneesDuFichier(fileName, context)
     //supprimerUneDonneeDuFichier(fileName, context, index)
@@ -194,6 +216,12 @@ fun changerStatusTache (fileName: String, context: Context, status : String, ind
     println(donneesActuelles.toString())
 }
 
+fun verifierStatus (date : String, index : Int, status : String, context: Context){
+    if (verifierDate(date) && status != "En retard"){
+        changerStatusTache("myfile", context, "En retard", index)
+    }
+}
+
 @Composable
 fun afficherDonnees (tableau: JSONArray, context : Context, contraintes : String){
 
@@ -205,13 +233,20 @@ fun afficherDonnees (tableau: JSONArray, context : Context, contraintes : String
         val task = tableau[i]
         val taskString = task.toString()
         val temp = JSONObject(taskString)
-        val status = temp.getString("Status")
+        val date = temp.getString("Date")
+        var status = temp.getString("Status")
         if (status == contraintes) {
-            val tache = temp.getString("Task")
-            val description = temp.getString("Description")
-            val date = temp.getString("Date")
             val index = temp.getString("Index")
-            listeDeTaches.add(listOf(tache + " - " + description  + " : " + date, index.toInt(), i))
+            val tache = temp.getString("Task")
+                val description = temp.getString("Description")
+                listeDeTaches.add(
+                    listOf(
+                        tache + " - " + description + " : " + date,
+                        index.toInt(),
+                        i
+                    )
+                )
+
         }
     }
 
@@ -365,3 +400,4 @@ fun background(
         }
     }
 }
+

@@ -32,6 +32,8 @@ import com.example.to_do_list.android.mettreDonneesDansFichier
 import com.example.to_do_list.android.prendreDonneesDuFichier
 import org.json.JSONObject
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import kotlin.math.absoluteValue
 
@@ -111,11 +113,18 @@ fun AjouterTaches (navController : NavController, applicationContexte : Context)
                                 alert.show()
                             }
                             else {*/
+                                val dateRenseignee = textFieldDate.text
+                                val jourRenseigne = dateRenseignee[0] + dateRenseignee[1].toString()
+                                val moisRenseigne = dateRenseignee[2] + dateRenseignee[3].toString()
+                                val anneeRenseignee = dateRenseignee[4] + dateRenseignee[5].toString() + dateRenseignee[6].toString() + dateRenseignee[7].toString()
+                                var date = LocalDate.of(anneeRenseignee.toInt(), moisRenseigne.toInt(), jourRenseigne.toInt())
+                                val simpleDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+
                                 val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
                                 val new = JSONObject()
                                 new.put("Task", textFieldName.text)
                                 new.put("Description", textFieldDescription.text)
-                                new.put("Date", textFieldDate.text)
+                                new.put("Date", date)
                                 new.put("Status", "En cours")
                                 new.put("Index", donnees.length())
                                 donnees.put(new)
