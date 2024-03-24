@@ -1,13 +1,11 @@
 package com.example.to_do_list.android
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
-import android.view.MotionEvent
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -30,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
-import androidx.compose.material3.SwipeToDismissDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
@@ -43,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,22 +55,25 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.PrintWriter
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Date
 
 
 class MainActivity : ComponentActivity(){
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             MyApplicationTheme {
 
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ){
+
+
+
                 val navController = rememberNavController ()
 
                 NavHost (navController=navController, startDestination = "listeTaches"){
@@ -99,6 +98,7 @@ class MainActivity : ComponentActivity(){
                         ListeTachesEnRetard(navController, applicationContext)
                     }
                 }}
+
 
 
             }
@@ -153,7 +153,6 @@ fun supprimerDonneesDuFichier(fileName: String, context : Context){
 
 fun supprimerUneDonneeDuFichier (fileName: String, context: Context, index : Int){
     val donneesActuelles = prendreDonneesDuFichier(fileName, context)
-    println(donneesActuelles.length())
     if (donneesActuelles.length() == 1){
         supprimerDonneesDuFichier(fileName, context)
     }else {
@@ -163,7 +162,8 @@ fun supprimerUneDonneeDuFichier (fileName: String, context: Context, index : Int
             val temp = JSONObject(taskString)
             val taskIndex = temp.getString("Index")
             if (taskIndex.toInt()==index){
-                donneesActuelles.remove(index)
+                println("task index : " + taskIndex.toInt() + "index " + index )
+                donneesActuelles.remove(i)
                 mettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
                 break
             }
@@ -175,8 +175,6 @@ fun supprimerUneDonneeDuFichier (fileName: String, context: Context, index : Int
 }
 
 fun verifierDate (date : String): Boolean {
-    //val simpleDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-    //println(date)
     val jourRenseigne = date[8] + date[9].toString()
     val moisRenseigne = date[5] + date[6].toString()
     val anneeRenseignee = date[0] + date[1].toString() + date[2].toString() + date[3].toString()
@@ -187,7 +185,6 @@ fun verifierDate (date : String): Boolean {
 
 fun changerStatusTache (fileName: String, context: Context, status : String, index : Int){
     var donneesActuelles = prendreDonneesDuFichier(fileName, context)
-    //supprimerUneDonneeDuFichier(fileName, context, index)
     for (i in 0 until donneesActuelles.length()){
         val task = donneesActuelles[i]
         val taskString = task.toString()
@@ -209,11 +206,9 @@ fun changerStatusTache (fileName: String, context: Context, status : String, ind
             donneesActuelles = prendreDonneesDuFichier(fileName, context)
             donneesActuelles.put(new)
             break
-            //supprimerUneDonneeDuFichier(fileName, context, index)
         }
     }
     mettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
-    println(donneesActuelles.toString())
 }
 
 fun verifierStatus (date : String, index : Int, status : String, context: Context){
@@ -264,8 +259,9 @@ fun afficherDonnees (tableau: JSONArray, context : Context, contraintes : String
                 contraintes = contraintes,
                 item = tache,
                 onDelete = {
-                    listeDeTaches.removeAt(tache[2] as Int)
+                    listeDeTaches-=tache
                     if (contraintes == "En cours"){
+                        //println("liste visuelle" + listeDeTaches.toList())
 
                         changerStatusTache("myfile", context, "Finie", tache[1] as Int)
                         //supprimerUneDonneeDuFichier("myfile", context, tache[1] as Int)

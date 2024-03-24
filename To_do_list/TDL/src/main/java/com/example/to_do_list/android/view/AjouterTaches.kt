@@ -1,7 +1,15 @@
 package com.example.to_do_list.android.view
 
-import android.app.AlertDialog
+import android.app.AlarmManager
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
@@ -27,20 +35,24 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavController
 import com.example.to_do_list.android.mettreDonneesDansFichier
 import com.example.to_do_list.android.prendreDonneesDuFichier
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import org.json.JSONObject
-import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Date
+import java.util.Calendar
 import kotlin.math.absoluteValue
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun AjouterTaches (navController : NavController, applicationContexte : Context){
-
+    val myCalendar = Calendar.getInstance () ;
     Box {
         Column {
             var textFieldName by remember { mutableStateOf(TextFieldValue("")) }
@@ -78,55 +90,28 @@ fun AjouterTaches (navController : NavController, applicationContexte : Context)
 
             Button(
                 onClick = {
-                    /*val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy")
-                    val dateActuelle = simpleDateFormat.format(Date())
 
-                    val jourActuel = dateActuelle[0] + dateActuelle[1].code
-                    val moisActuel = dateActuelle[3] + dateActuelle [4].code
-                    val anneeActuelle = dateActuelle[5] + dateActuelle[6].code + dateActuelle[7].code + dateActuelle[8].code
-
-                    val jourRenseignee = textFieldDate.text[0] + textFieldDate.text[1].code
-                    val moisRenseignee = textFieldDate.text[2] + textFieldDate.text[3].code
-                    val anneeRenseignee = textFieldDate.text[4] + textFieldDate.text[5].code + textFieldDate.text[6].code + textFieldDate.text[7].code
-
-                    if (anneeRenseignee.toInt() < anneeActuelle.toInt()){
-                        val alert = AlertDialog.Builder(applicationContexte)
-                        alert.setTitle("Mauvaise date")
-                        alert.setMessage("La date que vous avez choisie n'est pas valide.")
-                        alert.setPositiveButton("OK", null)
-                        alert.show()
-                    }
-                    else {
-                        if (moisRenseignee.toInt() < moisActuel.toInt()){
-                            val alert = AlertDialog.Builder(applicationContexte)
-                            alert.setTitle("Mauvaise date")
-                            alert.setMessage("La date que vous avez choisie n'est pas valide.")
-                            alert.setPositiveButton("OK", null)
-                            alert.show()
-                        }
-                        else {
-                            if (jourRenseignee.toInt() < jourActuel.toInt()){
-                                val alert = AlertDialog.Builder(applicationContexte)
-                                alert.setTitle("Mauvaise date")
-                                alert.setMessage("La date que vous avez choisie n'est pas valide.")
-                                alert.setPositiveButton("OK", null)
-                                alert.show()
-                            }
-                            else {*/
                                 val dateRenseignee = textFieldDate.text
                                 val jourRenseigne = dateRenseignee[0] + dateRenseignee[1].toString()
                                 val moisRenseigne = dateRenseignee[2] + dateRenseignee[3].toString()
                                 val anneeRenseignee = dateRenseignee[4] + dateRenseignee[5].toString() + dateRenseignee[6].toString() + dateRenseignee[7].toString()
                                 var date = LocalDate.of(anneeRenseignee.toInt(), moisRenseigne.toInt(), jourRenseigne.toInt())
                                 val simpleDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                        val heure = LocalDateTime.now()
 
-                                val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
+                    val status = if (date.isBefore(LocalDate.now())){
+                        "En retard"
+                    } else {
+                        "En cours"
+                    }
+
+                    val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
                                 val new = JSONObject()
                                 new.put("Task", textFieldName.text)
                                 new.put("Description", textFieldDescription.text)
                                 new.put("Date", date)
-                                new.put("Status", "En cours")
-                                new.put("Index", donnees.length())
+                                new.put("Status", status)
+                                new.put("Index", donnees.length() + date.dayOfMonth + date.monthValue + date.year + date.dayOfYear + heure.hour + heure.minute + heure.second + heure.dayOfYear + heure.dayOfMonth)
                                 donnees.put(new)
                                 mettreDonneesDansFichier(donnees.toString(), "myfile", applicationContexte)
                                 navController.navigate("listeTaches")

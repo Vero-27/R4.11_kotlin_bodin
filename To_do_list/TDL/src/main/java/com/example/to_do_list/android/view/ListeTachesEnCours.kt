@@ -69,10 +69,11 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                     val task = donnees[i]
                     val taskString = task.toString()
                     val temp = JSONObject(taskString)
-                    val date = temp.getString("Date");
+                    val date = temp.getString("Date")
                     val index = temp.getString("Index")
                     val status = temp.getString("Status")
                     verifierStatus(date, index.toInt(), status, applicationContexte)
+
                 }
                 afficherDonnees(tableau = donnees, applicationContexte, "En cours")
             }
