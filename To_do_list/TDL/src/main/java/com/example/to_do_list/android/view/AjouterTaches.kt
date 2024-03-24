@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,8 +52,8 @@ import kotlin.math.absoluteValue
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun AjouterTaches (navController : NavController, applicationContexte : Context){
-    val myCalendar = Calendar.getInstance () ;
+fun AjouterTaches(navController: NavController, applicationContexte: Context) {
+    val myCalendar = Calendar.getInstance();
     Box {
         Column {
             var textFieldName by remember { mutableStateOf(TextFieldValue("")) }
@@ -71,14 +72,14 @@ fun AjouterTaches (navController : NavController, applicationContexte : Context)
                 },
                 label = { Text(text = "Description de la tache") },
             )
-            var textFieldDate by remember { mutableStateOf(TextFieldValue(""))  }
-             val DATE_MASK = "##/##/####"
-             val DATE_LENGTH = 8
+            var textFieldDate by remember { mutableStateOf(TextFieldValue("")) }
+            val DATE_MASK = "##/##/####"
+            val DATE_LENGTH = 8
             TextField(
                 value = textFieldDate,
                 onValueChange = {
-                    if(it.text.length<=DATE_LENGTH){
-                    textFieldDate = it
+                    if (it.text.length <= DATE_LENGTH) {
+                        textFieldDate = it
                     }
 
                 },
@@ -87,34 +88,61 @@ fun AjouterTaches (navController : NavController, applicationContexte : Context)
 
             )
 
+            val openDialog = remember { mutableStateOf(false)}
 
             Button(
                 onClick = {
+                    var date : LocalDate? = null
+                    if (textFieldDate.text != "") {
+                        val dateRenseignee = textFieldDate.text
+                        if (dateRenseignee.length == 8) {
+                            val jourRenseigne = dateRenseignee[0] + dateRenseignee[1].toString()
+                            val moisRenseigne = dateRenseignee[2] + dateRenseignee[3].toString()
+                            val anneeRenseignee =
+                                dateRenseignee[4] + dateRenseignee[5].toString() + dateRenseignee[6].toString() + dateRenseignee[7].toString()
+                            if (verifierValiditeDate(jourRenseigne.toInt(),moisRenseigne.toInt())){
+                                date = LocalDate.of(
+                                    anneeRenseignee.toInt(),
+                                    moisRenseigne.toInt(),
+                                    jourRenseigne.toInt()
+                                )
+                            }
+                            else {
+                                openDialog.value = true
+                                return@Button
+                            }
+                        }
+                        else {
+                            openDialog.value = true
+                            return@Button
 
-                                val dateRenseignee = textFieldDate.text
-                                val jourRenseigne = dateRenseignee[0] + dateRenseignee[1].toString()
-                                val moisRenseigne = dateRenseignee[2] + dateRenseignee[3].toString()
-                                val anneeRenseignee = dateRenseignee[4] + dateRenseignee[5].toString() + dateRenseignee[6].toString() + dateRenseignee[7].toString()
-                                var date = LocalDate.of(anneeRenseignee.toInt(), moisRenseigne.toInt(), jourRenseigne.toInt())
-                                val simpleDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-                        val heure = LocalDateTime.now()
+                        }
+                    }
+                    else {
+                        date = null
+                    }
 
-                    val status = if (date.isBefore(LocalDate.now())){
+                    val heure = LocalDateTime.now()
+
+                    val status = if (date !=null && date.isBefore(LocalDate.now())) {
                         "En retard"
                     } else {
                         "En cours"
                     }
 
                     val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
-                                val new = JSONObject()
-                                new.put("Task", textFieldName.text)
-                                new.put("Description", textFieldDescription.text)
-                                new.put("Date", date)
-                                new.put("Status", status)
-                                new.put("Index", donnees.length() + date.dayOfMonth + date.monthValue + date.year + date.dayOfYear + heure.hour + heure.minute + heure.second + heure.dayOfYear + heure.dayOfMonth)
-                                donnees.put(new)
-                                mettreDonneesDansFichier(donnees.toString(), "myfile", applicationContexte)
-                                navController.navigate("listeTaches")
+                    val new = JSONObject()
+                    new.put("Task", textFieldName.text)
+                    new.put("Description", textFieldDescription.text)
+                    new.put("Date", date)
+                    new.put("Status", status)
+                    new.put(
+                        "Index",
+                        donnees.length() + heure.dayOfMonth + heure.monthValue + heure.year + heure.dayOfYear + heure.hour + heure.minute + heure.second + heure.dayOfYear + heure.dayOfMonth
+                    )
+                    donnees.put(new)
+                    mettreDonneesDansFichier(donnees.toString(), "myfile", applicationContexte)
+                    navController.navigate("listeTaches")
 
                 },
                 shape = RoundedCornerShape(50.dp),
@@ -128,11 +156,54 @@ fun AjouterTaches (navController : NavController, applicationContexte : Context)
                 )
             }
 
+            if (openDialog.value) {
+
+                AlertDialog(
+                    onDismissRequest = {
+                        openDialog.value = false
+                    },
+                    title = {
+                        Text(text = "Erreur de date")
+                    },
+                    text = {
+                        Text("La date que vous avez renseignée n'est pas valide.")
+                    },
+                    confirmButton = {
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = {
+                                openDialog.value = false
+                            }) {
+                            Text("Ok")
+                        }
+                    }
+                )
+            }
+
         }
     }
 
 }
 
+fun verifierValiditeDate (jour : Int, mois : Int): Boolean {
+    if (jour < 1 || jour > 31){
+        return false
+    }
+    if (mois < 1 || mois > 12){
+        return false
+    }
+
+    if (mois == 2 && jour > 29){
+        return false
+    }
+    if (mois == 4 || mois == 6 || mois == 9 || mois == 11){
+        if (jour > 30){
+            return false
+        }
+    }
+    return true
+}
 
 class MaskVisualTransformation(private val mask: String) : VisualTransformation {
 
@@ -168,4 +239,6 @@ class MaskVisualTransformation(private val mask: String) : VisualTransformation 
             return mask.take(offset.absoluteValue).count { it == '#' }
         }
     }
+
+
 }

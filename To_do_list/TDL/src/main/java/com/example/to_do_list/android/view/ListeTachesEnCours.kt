@@ -38,7 +38,7 @@ import org.json.JSONObject
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ListeTaches (navController : NavController, applicationContexte : Context){
+fun ListeTaches(navController: NavController, applicationContexte: Context) {
     Box {
         Column {
             LazyColumn {
@@ -57,41 +57,47 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                                 .background(Color.Magenta)
                         )
                     }
-                }}
-            Column (modifier = Modifier
-                .background(Color.LightGray)
-                .size(400.dp)
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .background(Color.LightGray)
+                    .size(400.dp)
                 //.verticalScroll(rememberScrollState())
-                    ){
+            ) {
                 Text("Taches")
                 val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
-                for (i in 0 until donnees.length()){
+                for (i in 0 until donnees.length()) {
                     val task = donnees[i]
                     val taskString = task.toString()
                     val temp = JSONObject(taskString)
-                    val date = temp.getString("Date")
-                    val index = temp.getString("Index")
-                    val status = temp.getString("Status")
-                    verifierStatus(date, index.toInt(), status, applicationContexte)
-
+                    var date = temp.isNull("Date")
+                    if (!date){
+                        println("here")
+                        val date2 = temp.getString("Date")
+                        val index = temp.getString("Index")
+                        val status = temp.getString("Status")
+                        verifierStatus(date2, index.toInt(), status, applicationContexte)
+                    }
                 }
                 afficherDonnees(tableau = donnees, applicationContexte, "En cours")
             }
 
             Row {
                 Button(
-                onClick = {
-                    navController.navigate("ajouterTaches")
-                },
-                shape = RoundedCornerShape(50.dp),
-                colors = ButtonDefaults.buttonColors(contentColor = Color.Gray),
-                modifier = Modifier.size(width = 50.dp, height = 50.dp)
-            ) {
-                Text(
-                    text = "+",
-                    fontSize = 25.sp,
+                    onClick = {
+                        navController.navigate("ajouterTaches")
+                    },
+                    shape = RoundedCornerShape(50.dp),
+                    colors = ButtonDefaults.buttonColors(contentColor = Color.Gray),
                     modifier = Modifier.size(width = 50.dp, height = 50.dp)
-                )}
+                ) {
+                    Text(
+                        text = "+",
+                        fontSize = 25.sp,
+                        modifier = Modifier.size(width = 50.dp, height = 50.dp)
+                    )
+                }
 
                 Button(
                     onClick = {
@@ -106,11 +112,12 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                         fontSize = 25.sp,
                         modifier = Modifier.size(width = 50.dp, height = 50.dp)
                     )
-            }}
+                }
+            }
             NavigationBar {
                 NavigationBarItem(
                     selected = true,
-                    onClick= {
+                    onClick = {
                         navController.navigate("listeTaches")
                     },
                     icon = {
@@ -119,10 +126,10 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                             contentDescription = null
                         )
                     },
-                    label = {Text("En cours")})
+                    label = { Text("En cours") })
                 NavigationBarItem(
                     selected = false,
-                    onClick= {
+                    onClick = {
                         navController.navigate("listeTachesFinies")
                     },
                     icon = {
@@ -131,7 +138,7 @@ fun ListeTaches (navController : NavController, applicationContexte : Context){
                             contentDescription = null
                         )
                     },
-                    label = {Text("Finie")})
+                    label = { Text("Finie") })
                 NavigationBarItem(
                     selected = false,
                     onClick = {
