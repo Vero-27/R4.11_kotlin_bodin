@@ -1,13 +1,6 @@
 package com.example.to_do_list.android.view
 
-import android.app.AlarmManager
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
@@ -38,15 +31,13 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavController
-import com.example.to_do_list.android.mettreDonneesDansFichier
-import com.example.to_do_list.android.prendreDonneesDuFichier
+import com.example.to_do_list.android.MettreDonneesDansFichier
+import com.example.to_do_list.android.PrendreDonneesDuFichier
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import org.json.JSONObject
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import kotlin.math.absoluteValue
 
@@ -136,7 +127,7 @@ fun AjouterTaches(navController: NavController, applicationContexte: Context, in
                         "En cours"
                     }
 
-                    val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
+                    val donnees = PrendreDonneesDuFichier("myfile", applicationContexte)
                     val new = JSONObject()
                     new.put("Task", textFieldName.text)
                     new.put("Description", textFieldDescription.text)
@@ -147,7 +138,7 @@ fun AjouterTaches(navController: NavController, applicationContexte: Context, in
                         donnees.length() + heure.dayOfMonth + heure.monthValue + heure.year + heure.dayOfYear + heure.hour + heure.minute + heure.second + heure.dayOfYear + heure.dayOfMonth
                     )
                     donnees.put(new)
-                    mettreDonneesDansFichier(donnees.toString(), "myfile", applicationContexte)
+                    MettreDonneesDansFichier(donnees.toString(), "myfile", applicationContexte)
                     navController.navigate("listeTaches")
 
                 },

@@ -75,7 +75,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.to_do_list.android.view.AjouterTaches
 import com.example.to_do_list.android.view.ListeTaches
 import com.example.to_do_list.android.view.ListeTachesEnRetard
 import com.example.to_do_list.android.view.ListeTachesFinies
@@ -107,8 +106,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    mettreDonneesDansFichier("myfile", "", applicationContext)
-                    supprimerDonneesDuFichier("myfile", applicationContext)
+                    MettreDonneesDansFichier("myfile", "", applicationContext)
+                    SupprimerDonneesDuFichier("myfile", applicationContext)
                     val navController = rememberNavController()
 
                     Scaffold(
@@ -145,7 +144,6 @@ class MainActivity : ComponentActivity() {
                                     route = "listeTaches"
                                 ) {
                                     ListeTaches(
-                                        navController,
                                         applicationContext,
                                         innerPadding
                                     )
@@ -153,10 +151,8 @@ class MainActivity : ComponentActivity() {
                                 composable(
                                     route = "ajouterTaches"
                                 ) {
-                                    //AjouterTaches(navController, applicationContext, innerPadding)
                                     FormulaireAjoutTaches(
                                         navController = navController,
-                                        innerPadding = innerPadding ,
                                         applicationContext = applicationContext
                                     )
                                 }
@@ -164,7 +160,6 @@ class MainActivity : ComponentActivity() {
                                     route = "listeTachesFinies"
                                 ) {
                                     ListeTachesFinies(
-                                        navController,
                                         applicationContext,
                                         innerPadding
                                     )
@@ -173,7 +168,6 @@ class MainActivity : ComponentActivity() {
                                     route = "listeTachesEnRetard"
                                 ) {
                                     ListeTachesEnRetard(
-                                        navController,
                                         applicationContext,
                                         innerPadding
                                     )
@@ -228,7 +222,6 @@ class MainActivity : ComponentActivity() {
                 }
 
 
-
             }
         }
     }
@@ -236,7 +229,7 @@ class MainActivity : ComponentActivity() {
 
 }
 
-fun mettreDonneesDansFichier(string: String, fileName: String, context: Context) {
+fun MettreDonneesDansFichier(string: String, fileName: String, context: Context) {
     val outputStream: FileOutputStream
 
     try {
@@ -248,7 +241,7 @@ fun mettreDonneesDansFichier(string: String, fileName: String, context: Context)
     }
 }
 
-fun prendreDonneesDuFichier(fileName: String, context: Context): JSONArray {
+fun PrendreDonneesDuFichier(fileName: String, context: Context): JSONArray {
     val inputStream: FileInputStream
     inputStream = context.openFileInput(fileName)
 
@@ -261,7 +254,7 @@ fun prendreDonneesDuFichier(fileName: String, context: Context): JSONArray {
     return json
 }
 
-fun supprimerDonneesDuFichier(fileName: String, context: Context) {
+fun SupprimerDonneesDuFichier(fileName: String, context: Context) {
     val outputStream: FileOutputStream
 
     try {
@@ -276,13 +269,13 @@ fun supprimerDonneesDuFichier(fileName: String, context: Context) {
     val string =
         "[\n" + "  ]\n"
 
-    mettreDonneesDansFichier(string, fileName, context)
+    MettreDonneesDansFichier(string, fileName, context)
 }
 
-fun supprimerUneDonneeDuFichier(fileName: String, context: Context, index: Int) {
-    val donneesActuelles = prendreDonneesDuFichier(fileName, context)
+fun SupprimerUneDonneeDuFichier(fileName: String, context: Context, index: Int) {
+    val donneesActuelles = PrendreDonneesDuFichier(fileName, context)
     if (donneesActuelles.length() == 1) {
-        supprimerDonneesDuFichier(fileName, context)
+        SupprimerDonneesDuFichier(fileName, context)
     } else {
         for (i in 0 until donneesActuelles.length()) {
             val task = donneesActuelles[i]
@@ -292,7 +285,7 @@ fun supprimerUneDonneeDuFichier(fileName: String, context: Context, index: Int) 
             if (taskIndex.toInt() == index) {
                 println("task index : " + taskIndex.toInt() + "index " + index)
                 donneesActuelles.remove(i)
-                mettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
+                MettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
                 break
             }
         }
@@ -302,7 +295,7 @@ fun supprimerUneDonneeDuFichier(fileName: String, context: Context, index: Int) 
 
 }
 
-fun verifierDate(date: String): Boolean {
+fun VerifierDateTache(date: String): Boolean {
     val jourRenseigne = date[8] + date[9].toString()
     val moisRenseigne = date[5] + date[6].toString()
     val anneeRenseignee = date[0] + date[1].toString() + date[2].toString() + date[3].toString()
@@ -312,8 +305,8 @@ fun verifierDate(date: String): Boolean {
     return dateRenseignee.isBefore(dateActuelle)
 }
 
-fun changerStatusTache(fileName: String, context: Context, status: String, index: Int) {
-    var donneesActuelles = prendreDonneesDuFichier(fileName, context)
+fun ChangerStatusTache(fileName: String, context: Context, status: String, index: Int) {
+    var donneesActuelles = PrendreDonneesDuFichier(fileName, context)
     for (i in 0 until donneesActuelles.length()) {
         val task = donneesActuelles[i]
         val taskString = task.toString()
@@ -323,38 +316,37 @@ fun changerStatusTache(fileName: String, context: Context, status: String, index
             val new = JSONObject()
             val task = temp.getString("Task")
             val description = temp.getString("Description")
-            val date : String?
-            if (temp.isNull("Date")){
+            val date: String?
+            if (temp.isNull("Date")) {
                 date = null
-            }
-            else {
+            } else {
                 date = temp.getString("Date")
             }
-            supprimerUneDonneeDuFichier(fileName, context, index)
+            SupprimerUneDonneeDuFichier(fileName, context, index)
             new.put("Task", task)
             new.put("Description", description)
             new.put("Date", date)
             new.put("Status", status)
             new.put("Index", index)
 
-            donneesActuelles = prendreDonneesDuFichier(fileName, context)
+            donneesActuelles = PrendreDonneesDuFichier(fileName, context)
             donneesActuelles.put(new)
             break
         }
     }
-    mettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
+    MettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
 }
 
-fun verifierStatus(date: String, index: Int, status: String, context: Context) {
-    if (verifierDate(date) && status != "En retard") {
-        changerStatusTache("myfile", context, "En retard", index)
+fun VerifierStatusTache(date: String, index: Int, status: String, context: Context) {
+    if (VerifierDateTache(date) && status != "En retard") {
+        ChangerStatusTache("myfile", context, "En retard", index)
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormulaireAjoutTaches(
     navController: NavController,
-    innerPadding: PaddingValues,
     applicationContext: Context
 ) {
 
@@ -367,22 +359,20 @@ fun FormulaireAjoutTaches(
             },
             modifier = Modifier
                 .background(Color.White),
-            //.shadow(10.dp, MaterialTheme.shapes.medium, clip = false)
         ) {
-            Box (
+            Box(
                 contentAlignment = Alignment.Center
-            ){
+            ) {
                 Column(
                     modifier = Modifier
                         .padding(horizontal = 8.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text ("Ajouter une tâche")
+                    Text("Ajouter une tâche")
                     var textFieldName by remember { mutableStateOf(TextFieldValue("")) }
                     var textErreur by remember { mutableStateOf("") }
                     OutlinedTextField(
                         value = textFieldName,
-                        //shape = MaterialTheme.shapes.medium,
                         onValueChange = {
                             textFieldName = it
                         },
@@ -391,7 +381,6 @@ fun FormulaireAjoutTaches(
                     var textFieldDescription by remember { mutableStateOf(TextFieldValue("")) }
                     OutlinedTextField(
                         value = textFieldDescription,
-                        //shape = MaterialTheme.shapes.medium,
                         onValueChange = {
                             textFieldDescription = it
                         },
@@ -459,7 +448,7 @@ fun FormulaireAjoutTaches(
                                 "En cours"
                             }
 
-                            val donnees = prendreDonneesDuFichier("myfile", applicationContext)
+                            val donnees = PrendreDonneesDuFichier("myfile", applicationContext)
                             val new = JSONObject()
                             new.put("Task", textFieldName.text)
                             new.put("Description", textFieldDescription.text)
@@ -470,7 +459,7 @@ fun FormulaireAjoutTaches(
                                 donnees.length() + heure.dayOfMonth + heure.monthValue + heure.year + heure.dayOfYear + heure.hour + heure.minute + heure.second + heure.dayOfYear + heure.dayOfMonth
                             )
                             donnees.put(new)
-                            mettreDonneesDansFichier(
+                            MettreDonneesDansFichier(
                                 donnees.toString(),
                                 "myfile",
                                 applicationContext
@@ -478,15 +467,10 @@ fun FormulaireAjoutTaches(
                             navController.navigate("listeTaches")
                             openDialog.value = false
 
-                        },
-                        //shape = RoundedCornerShape(50.dp),
-                        //colors = ButtonDefaults.buttonColors(contentColor = Color.Gray),
-                        //modifier = Modifier.size(width = 50.dp, height = 50.dp)
+                        }
                     ) {
                         Text(
-                            text = "Ajouter",
-                            //fontSize = 25.sp,
-                            //modifier = Modifier.size(width = 50.dp, height = 50.dp)
+                            text = "Ajouter"
                         )
                     }
                 }
@@ -494,9 +478,10 @@ fun FormulaireAjoutTaches(
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun afficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
+fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
 
     val listeDeTaches = remember {
         mutableStateListOf(listOf("", "", 1, null))
@@ -534,8 +519,6 @@ fun afficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
 
 
     LazyColumn(
-        /*modifier = Modifier
-            .fillMaxSize(),*/
         verticalArrangement = Arrangement.spacedBy(4.dp),
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
     ) {
@@ -548,16 +531,15 @@ fun afficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
                 targetValue = if (expandedState) 180f else 0f, label = ""
             )
 
-            SwipeToDeleteContainer(
-                applicationContext = context,
+            SwipePourEffacer(
                 contraintes = contraintes,
                 item = tache,
                 onDelete = {
                     listeDeTaches -= tache
                     if (contraintes == "En cours") {
-                        changerStatusTache("myfile", context, "Finie", tache[2] as Int)
+                        ChangerStatusTache("myfile", context, "Finie", tache[2] as Int)
                     } else {
-                        supprimerUneDonneeDuFichier("myfile", context, tache[2] as Int)
+                        SupprimerUneDonneeDuFichier("myfile", context, tache[2] as Int)
                     }
 
                 }
@@ -631,8 +613,7 @@ fun afficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun <T> SwipeToDeleteContainer(
-    applicationContext: Context,
+fun <T> SwipePourEffacer(
     contraintes: String,
     item: T,
     onDelete: (T) -> Unit,
@@ -658,14 +639,6 @@ fun <T> SwipeToDeleteContainer(
         if (isRemoved) {
             delay(animationDuration.toLong())
             onDelete(item)
-
-            /*if (toTheRight){
-                Toast.makeText(applicationContext, "Tache validée", Toast.LENGTH_SHORT).show ()
-            }
-            else {
-                Toast.makeText(applicationContext, "Tache effacée", Toast.LENGTH_SHORT).show ()
-            }*/
-
         }
     }
 
@@ -681,7 +654,7 @@ fun <T> SwipeToDeleteContainer(
 
             state = state,
             background = {
-                background(swipeDismissState = state, contraintes = contraintes)
+                BackgroundDuSwipe(swipeDismissState = state, contraintes = contraintes)
             },
             dismissContent = { content(item) },
             directions = setOf(DismissDirection.StartToEnd)
@@ -693,7 +666,7 @@ fun <T> SwipeToDeleteContainer(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun background(
+fun BackgroundDuSwipe(
     swipeDismissState: DismissState, contraintes: String
 ) {
     val color = if (swipeDismissState.dismissDirection == DismissDirection.StartToEnd) {
