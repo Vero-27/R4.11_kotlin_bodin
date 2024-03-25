@@ -35,7 +35,7 @@ import com.example.to_do_list.android.prendreDonneesDuFichier
 fun ListeTachesEnRetard(navController: NavController, applicationContexte: Context, innerPadding: PaddingValues) {
     Box {
         Column {
-            LazyColumn {
+            /*LazyColumn {
                 stickyHeader {
                     Surface(Modifier.fillParentMaxWidth()) {
                         Text(
@@ -52,7 +52,7 @@ fun ListeTachesEnRetard(navController: NavController, applicationContexte: Conte
                         )
                     }
                 }
-            }
+            }*/
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -63,7 +63,7 @@ fun ListeTachesEnRetard(navController: NavController, applicationContexte: Conte
                 val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
                 afficherDonnees(tableau = donnees, applicationContexte, "En retard")
             }
-            NavigationBar {
+            /*NavigationBar {
                 NavigationBarItem(
                     selected = false,
                     onClick = {
@@ -100,10 +100,10 @@ fun ListeTachesEnRetard(navController: NavController, applicationContexte: Conte
                             contentDescription = null
                         )
                     },
-                    label = { Text("En retard") })
+                    label = { Text("En retard") })*/
 
 
-            }
+
 
 
         }

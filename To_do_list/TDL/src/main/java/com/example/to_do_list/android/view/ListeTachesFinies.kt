@@ -36,7 +36,7 @@ fun ListeTachesFinies(navController: NavController, applicationContexte: Context
 
     Box {
         Column {
-            LazyColumn {
+            /*LazyColumn {
                 stickyHeader {
                     Surface(Modifier.fillParentMaxWidth()) {
                         Text(
@@ -53,7 +53,7 @@ fun ListeTachesFinies(navController: NavController, applicationContexte: Context
                         )
                     }
                 }
-            }
+            }*/
             Column(
                 modifier = Modifier
                     .padding(innerPadding)
@@ -64,7 +64,7 @@ fun ListeTachesFinies(navController: NavController, applicationContexte: Context
                 val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
                 afficherDonnees(tableau = donnees, applicationContexte, "Finie")
             }
-            NavigationBar {
+            /*NavigationBar {
                 NavigationBarItem(
                     selected = false,
                     onClick = {
@@ -103,7 +103,7 @@ fun ListeTachesFinies(navController: NavController, applicationContexte: Context
                     label = { Text("En retard") })
 
 
-            }
+            }*/
 
 
         }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,10 +40,10 @@ import org.json.JSONObject
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ListeTachesEnCours(navController: NavController, applicationContexte: Context, innerPadding: PaddingValues) {
+fun ListeTaches(navController: NavController, applicationContexte: Context, innerPadding: PaddingValues) {
     Box {
         Column {
-            LazyColumn {
+            /*LazyColumn {
                 stickyHeader {
                     Surface(Modifier.fillParentMaxWidth()) {
                         Text(
@@ -59,15 +60,14 @@ fun ListeTachesEnCours(navController: NavController, applicationContexte: Contex
                         )
                     }
                 }
-            }
+            }*/
             Column(
                 modifier = Modifier
-                    .background(Color.LightGray)
-                    .size(400.dp)
                     .padding(innerPadding)
+                    .fillMaxSize()
                 //.verticalScroll(rememberScrollState())
             ) {
-                Text("Taches")
+                //Text("Taches")
                 val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
                 for (i in 0 until donnees.length()) {
                     val task = donnees[i]
@@ -85,7 +85,7 @@ fun ListeTachesEnCours(navController: NavController, applicationContexte: Contex
                 afficherDonnees(tableau = donnees, applicationContexte, "En cours")
             }
 
-            Row {
+           /* Row {
                 Button(
                     onClick = {
                         navController.navigate("ajouterTaches")
@@ -155,7 +155,7 @@ fun ListeTachesEnCours(navController: NavController, applicationContexte: Contex
                     label = { Text("En retard") })
 
 
-            }
+            }*/
 
 
         }

@@ -1,5 +1,6 @@
 package com.example.to_do_list.android
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
@@ -7,23 +8,34 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissState
 import androidx.compose.material3.DismissValue
@@ -31,9 +43,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
@@ -50,15 +64,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.to_do_list.android.view.AjouterTaches
-import com.example.to_do_list.android.view.ListeTachesEnCours
+import com.example.to_do_list.android.view.ListeTaches
 import com.example.to_do_list.android.view.ListeTachesEnRetard
 import com.example.to_do_list.android.view.ListeTachesFinies
+import com.example.to_do_list.android.view.MaskVisualTransformation
+import com.example.to_do_list.android.view.verifierValiditeDate
 import kotlinx.coroutines.delay
 import org.json.JSONArray
 import org.json.JSONObject
@@ -66,10 +88,12 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.PrintWriter
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 class MainActivity : ComponentActivity() {
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,11 +102,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApplicationTheme {
 
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
+                    mettreDonneesDansFichier("myfile", "", applicationContext)
+                    supprimerDonneesDuFichier("myfile", applicationContext)
                     val navController = rememberNavController()
 
                     Scaffold(
@@ -118,7 +144,7 @@ class MainActivity : ComponentActivity() {
                                 composable(
                                     route = "listeTaches"
                                 ) {
-                                    ListeTachesEnCours(
+                                    ListeTaches(
                                         navController,
                                         applicationContext,
                                         innerPadding
@@ -127,7 +153,12 @@ class MainActivity : ComponentActivity() {
                                 composable(
                                     route = "ajouterTaches"
                                 ) {
-                                    AjouterTaches(navController, applicationContext, innerPadding)
+                                    //AjouterTaches(navController, applicationContext, innerPadding)
+                                    FormulaireAjoutTaches(
+                                        navController = navController,
+                                        innerPadding = innerPadding ,
+                                        applicationContext = applicationContext
+                                    )
                                 }
                                 composable(
                                     route = "listeTachesFinies"
@@ -319,12 +350,156 @@ fun verifierStatus(date: String, index: Int, status: String, context: Context) {
         changerStatusTache("myfile", context, "En retard", index)
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FormulaireAjoutTaches(
+    navController: NavController,
+    innerPadding: PaddingValues,
+    applicationContext: Context
+) {
 
+    val openDialog = remember { mutableStateOf(true) }
+    if (openDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                openDialog.value = false
+                navController.navigate("listeTaches")
+            },
+            modifier = Modifier
+                .background(Color.White),
+            //.shadow(10.dp, MaterialTheme.shapes.medium, clip = false)
+        ) {
+            Box (
+                contentAlignment = Alignment.Center
+            ){
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text ("Ajouter une tâche")
+                    var textFieldName by remember { mutableStateOf(TextFieldValue("")) }
+                    var textErreur by remember { mutableStateOf("") }
+                    OutlinedTextField(
+                        value = textFieldName,
+                        //shape = MaterialTheme.shapes.medium,
+                        onValueChange = {
+                            textFieldName = it
+                        },
+                        label = { Text(text = "Nom de la tache") },
+                    )
+                    var textFieldDescription by remember { mutableStateOf(TextFieldValue("")) }
+                    OutlinedTextField(
+                        value = textFieldDescription,
+                        //shape = MaterialTheme.shapes.medium,
+                        onValueChange = {
+                            textFieldDescription = it
+                        },
+                        label = { Text(text = "Description de la tache") },
+                    )
+                    var textFieldDate by remember { mutableStateOf(TextFieldValue("")) }
+                    val DATE_MASK = "##/##/####"
+                    val DATE_LENGTH = 8
+                    OutlinedTextField(
+                        value = textFieldDate,
+                        onValueChange = {
+                            if (it.text.length <= DATE_LENGTH) {
+                                textFieldDate = it
+                            }
+
+                        },
+                        label = { Text(text = "Date limite de réalisation") },
+                        visualTransformation = MaskVisualTransformation(DATE_MASK),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+
+                    )
+                    Text(
+                        text = textErreur
+                    )
+                    Button(
+                        onClick = {
+                            var date: LocalDate? = null
+                            if (textFieldDate.text != "") {
+                                val dateRenseignee = textFieldDate.text
+                                if (dateRenseignee.length == 8) {
+                                    val jourRenseigne =
+                                        dateRenseignee[0] + dateRenseignee[1].toString()
+                                    val moisRenseigne =
+                                        dateRenseignee[2] + dateRenseignee[3].toString()
+                                    val anneeRenseignee =
+                                        dateRenseignee[4] + dateRenseignee[5].toString() + dateRenseignee[6].toString() + dateRenseignee[7].toString()
+                                    if (verifierValiditeDate(
+                                            jourRenseigne.toInt(),
+                                            moisRenseigne.toInt()
+                                        )
+                                    ) {
+                                        date = LocalDate.of(
+                                            anneeRenseignee.toInt(),
+                                            moisRenseigne.toInt(),
+                                            jourRenseigne.toInt()
+                                        )
+                                    } else {
+                                        textErreur = "La date renseignée n'est pas valide"
+                                        return@Button
+                                    }
+                                } else {
+                                    textErreur = "La date renseignée n'est pas valide"
+                                    return@Button
+
+                                }
+                            } else {
+                                date = null
+                            }
+
+                            val heure = LocalDateTime.now()
+
+                            val status = if (date != null && date.isBefore(LocalDate.now())) {
+                                "En retard"
+                            } else {
+                                "En cours"
+                            }
+
+                            val donnees = prendreDonneesDuFichier("myfile", applicationContext)
+                            val new = JSONObject()
+                            new.put("Task", textFieldName.text)
+                            new.put("Description", textFieldDescription.text)
+                            new.put("Date", date)
+                            new.put("Status", status)
+                            new.put(
+                                "Index",
+                                donnees.length() + heure.dayOfMonth + heure.monthValue + heure.year + heure.dayOfYear + heure.hour + heure.minute + heure.second + heure.dayOfYear + heure.dayOfMonth
+                            )
+                            donnees.put(new)
+                            mettreDonneesDansFichier(
+                                donnees.toString(),
+                                "myfile",
+                                applicationContext
+                            )
+                            navController.navigate("listeTaches")
+                            openDialog.value = false
+
+                        },
+                        //shape = RoundedCornerShape(50.dp),
+                        //colors = ButtonDefaults.buttonColors(contentColor = Color.Gray),
+                        //modifier = Modifier.size(width = 50.dp, height = 50.dp)
+                    ) {
+                        Text(
+                            text = "Ajouter",
+                            //fontSize = 25.sp,
+                            //modifier = Modifier.size(width = 50.dp, height = 50.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun afficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
 
     val listeDeTaches = remember {
-        mutableStateListOf(listOf("", 1, 1))
+        mutableStateListOf(listOf("", "", 1, null))
     }
     listeDeTaches.removeAll(listeDeTaches)
     for (i in 0 until tableau.length()) {
@@ -336,18 +511,21 @@ fun afficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
             val index = temp.getString("Index")
             val tache = temp.getString("Task")
             val description = temp.getString("Description")
-            var date : String?
-            if (!temp.isNull("Date")){
+            var date: String?
+            if (!temp.isNull("Date")) {
                 date = temp.getString("Date")
-            }
-            else {
+            } else {
                 date = null
             }
+            println("date " + date)
+
             listeDeTaches.add(
                 listOf(
-                    tache + " - " + description + " : " + date,
+                    tache,
+                    description,
                     index.toInt(),
-                    i
+                    date
+
                 )
             )
 
@@ -356,13 +534,20 @@ fun afficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
 
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
+        /*modifier = Modifier
+            .fillMaxSize(),*/
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
     ) {
         items(
             items = listeDeTaches,
             key = { it }
         ) { tache ->
+            var expandedState by remember { mutableStateOf(false) }
+            val rotationState by animateFloatAsState(
+                targetValue = if (expandedState) 180f else 0f, label = ""
+            )
+
             SwipeToDeleteContainer(
                 applicationContext = context,
                 contraintes = contraintes,
@@ -370,30 +555,77 @@ fun afficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
                 onDelete = {
                     listeDeTaches -= tache
                     if (contraintes == "En cours") {
-                        //println("liste visuelle" + listeDeTaches.toList())
-
-                        changerStatusTache("myfile", context, "Finie", tache[1] as Int)
-                        println("ca marche")
-                        //supprimerUneDonneeDuFichier("myfile", context, tache[1] as Int)
-
+                        changerStatusTache("myfile", context, "Finie", tache[2] as Int)
                     } else {
-                        supprimerUneDonneeDuFichier("myfile", context, tache[1] as Int)
+                        supprimerUneDonneeDuFichier("myfile", context, tache[2] as Int)
                     }
 
                 }
 
             )
             { tache ->
-                Text(
-                    text = tache[0] as String,
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(16.dp)
-                )
+                        .padding(horizontal = 5.dp, vertical = 2.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 10.dp
+                    ),
+                    onClick = {
+                        expandedState = !expandedState
+                    },
+                ) {
+                    Column {
+                        Row {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = tache[0] as String,
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp, vertical = 10.dp),
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                if (tache[3] != null) {
+
+                                    Text(
+                                        text = tache[3] as String,
+                                        fontSize = 10.sp,
+                                        modifier = Modifier
+                                            .padding(horizontal = 8.dp),
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
+                            IconButton(
+                                modifier = Modifier
+                                    .rotate(rotationState),
+                                onClick = {
+                                    expandedState = !expandedState
+                                }) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                    tint = Color.LightGray,
+                                )
+                            }
+
+
+                        }
+                        if (expandedState) {
+                            Text(
+                                text = tache[1] as String,
+                                modifier = Modifier
+                                    .padding(horizontal = 5.dp, vertical = 2.dp),
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
             }
 
         }
+
+
     }
 }
 
