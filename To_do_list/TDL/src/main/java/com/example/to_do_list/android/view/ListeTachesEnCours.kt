@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,7 +39,7 @@ import org.json.JSONObject
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ListeTaches(navController: NavController, applicationContexte: Context) {
+fun ListeTachesEnCours(navController: NavController, applicationContexte: Context, innerPadding: PaddingValues) {
     Box {
         Column {
             LazyColumn {
@@ -63,6 +64,7 @@ fun ListeTaches(navController: NavController, applicationContexte: Context) {
                 modifier = Modifier
                     .background(Color.LightGray)
                     .size(400.dp)
+                    .padding(innerPadding)
                 //.verticalScroll(rememberScrollState())
             ) {
                 Text("Taches")

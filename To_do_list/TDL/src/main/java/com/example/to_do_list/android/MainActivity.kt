@@ -18,17 +18,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissState
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +56,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.to_do_list.android.view.AjouterTaches
-import com.example.to_do_list.android.view.ListeTaches
+import com.example.to_do_list.android.view.ListeTachesEnCours
 import com.example.to_do_list.android.view.ListeTachesEnRetard
 import com.example.to_do_list.android.view.ListeTachesFinies
 import kotlinx.coroutines.delay
@@ -59,6 +70,7 @@ import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,29 +85,117 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navController = rememberNavController()
 
-                    NavHost(navController = navController, startDestination = "listeTaches") {
-                        composable(
-                            route = "listeTaches"
-                        ) {
-                            ListeTaches(navController, applicationContext)
+                    Scaffold(
+                        topBar = {
+                            TopAppBar(
+                                title = { Text("Top App Bar") },
+                                colors = TopAppBarDefaults.topAppBarColors(
+                                    titleContentColor = Color.Black,
+                                    containerColor = Color.LightGray
+                                ),
+                                navigationIcon = { Icons.Default.DateRange }
+                            )
+                        },
+                        floatingActionButtonPosition = FabPosition.End,
+                        floatingActionButton = {
+                            FloatingActionButton(onClick = {
+                                navController.navigate("ajouterTaches")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "fab icon"
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        content = { innerPadding ->
+
+                            NavHost(
+                                navController = navController,
+                                startDestination = "listeTaches"
+                            ) {
+                                composable(
+                                    route = "listeTaches"
+                                ) {
+                                    ListeTachesEnCours(
+                                        navController,
+                                        applicationContext,
+                                        innerPadding
+                                    )
+                                }
+                                composable(
+                                    route = "ajouterTaches"
+                                ) {
+                                    AjouterTaches(navController, applicationContext, innerPadding)
+                                }
+                                composable(
+                                    route = "listeTachesFinies"
+                                ) {
+                                    ListeTachesFinies(
+                                        navController,
+                                        applicationContext,
+                                        innerPadding
+                                    )
+                                }
+                                composable(
+                                    route = "listeTachesEnRetard"
+                                ) {
+                                    ListeTachesEnRetard(
+                                        navController,
+                                        applicationContext,
+                                        innerPadding
+                                    )
+                                }
+                            }
+                        },
+                        bottomBar = {
+                            NavigationBar {
+                                NavigationBarItem(
+                                    selected = false,
+                                    onClick = {
+                                        navController.navigate("listeTaches")
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    label = { Text("En cours") })
+                                NavigationBarItem(
+                                    selected = false,
+                                    onClick = {
+                                        navController.navigate("listeTachesFinies")
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    label = { Text("Finie") })
+                                NavigationBarItem(
+                                    selected = false,
+                                    onClick = {
+                                        navController.navigate("listeTachesEnRetard")
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    label = { Text("En retard") })
+
+
+                            }
                         }
-                        composable(
-                            route = "ajouterTaches"
-                        ) {
-                            AjouterTaches(navController, applicationContext)
-                        }
-                        composable(
-                            route = "listeTachesFinies"
-                        ) {
-                            ListeTachesFinies(navController, applicationContext)
-                        }
-                        composable(
-                            route = "listeTachesEnRetard"
-                        ) {
-                            ListeTachesEnRetard(navController, applicationContext)
-                        }
-                    }
+                    )
+
+
                 }
+
 
 
             }

@@ -12,6 +12,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -52,10 +54,14 @@ import kotlin.math.absoluteValue
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun AjouterTaches(navController: NavController, applicationContexte: Context) {
+fun AjouterTaches(navController: NavController, applicationContexte: Context, innerPadding: PaddingValues) {
     val myCalendar = Calendar.getInstance();
     Box {
-        Column {
+        Column (
+            modifier = Modifier
+                .padding(innerPadding)
+
+        ){
             var textFieldName by remember { mutableStateOf(TextFieldValue("")) }
             TextField(
                 value = textFieldName,
