@@ -1,5 +1,6 @@
 package com.example.to_do_list.android
 
+import android.R
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
@@ -25,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
@@ -75,12 +77,16 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.to_do_list.android.view.Avatar
 import com.example.to_do_list.android.view.ListeTaches
+import com.example.to_do_list.android.view.ListeTachesAFaire
 import com.example.to_do_list.android.view.ListeTachesEnRetard
 import com.example.to_do_list.android.view.ListeTachesFinies
 import com.example.to_do_list.android.view.MaskVisualTransformation
 import com.example.to_do_list.android.view.verifierValiditeDate
 import kotlinx.coroutines.delay
+import nl.dionsegijn.konfetti.compose.KonfettiView
+import nl.dionsegijn.konfetti.core.models.Size
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FileInputStream
@@ -106,10 +112,10 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    MettreDonneesDansFichier("myfile", "", applicationContext)
-                    SupprimerDonneesDuFichier("myfile", applicationContext)
+                    /*MettreDonneesDansFichier("myfile", "", applicationContext)
+                    SupprimerDonneesDuFichier("myfile", applicationContext)*/
                     val navController = rememberNavController()
-
+                    var fenetreSelectionnee by remember { mutableStateOf("listeAFaire") }
                     Scaffold(
                         topBar = {
                             TopAppBar(
@@ -138,8 +144,16 @@ class MainActivity : ComponentActivity() {
 
                             NavHost(
                                 navController = navController,
-                                startDestination = "listeTaches"
+                                startDestination = "listeAFAire"
                             ) {
+                                composable(
+                                route = "listeAFAire"
+                            ) {
+                                    ListeTachesAFaire(
+                                    applicationContext,
+                                    innerPadding
+                                )
+                            }
                                 composable(
                                     route = "listeTaches"
                                 ) {
@@ -153,7 +167,8 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     FormulaireAjoutTaches(
                                         navController = navController,
-                                        applicationContext = applicationContext
+                                        applicationContext = applicationContext,
+                                        fenetreSelectionnee
                                     )
                                 }
                                 composable(
@@ -172,14 +187,36 @@ class MainActivity : ComponentActivity() {
                                         innerPadding
                                     )
                                 }
+                                composable(
+                                    route = "avatar"
+                                ) {
+                                    Avatar(
+                                        applicationContext,
+                                        innerPadding
+                                    )
+                                }
                             }
                         },
                         bottomBar = {
                             NavigationBar {
                                 NavigationBarItem(
-                                    selected = false,
+                                    selected = fenetreSelectionnee == "listeAFaire",
+                                    onClick = {
+                                        navController.navigate("listeAFAire")
+                                        fenetreSelectionnee = "listeAFAire"
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    label = { Text("A faire") })
+                                NavigationBarItem(
+                                    selected = fenetreSelectionnee == "listeTaches",
                                     onClick = {
                                         navController.navigate("listeTaches")
+                                        fenetreSelectionnee = "listeTaches"
                                     },
                                     icon = {
                                         Icon(
@@ -189,9 +226,10 @@ class MainActivity : ComponentActivity() {
                                     },
                                     label = { Text("En cours") })
                                 NavigationBarItem(
-                                    selected = false,
+                                    selected = fenetreSelectionnee == "listeTachesFinies",
                                     onClick = {
                                         navController.navigate("listeTachesFinies")
+                                        fenetreSelectionnee = "listeTachesFinies"
                                     },
                                     icon = {
                                         Icon(
@@ -201,9 +239,10 @@ class MainActivity : ComponentActivity() {
                                     },
                                     label = { Text("Finie") })
                                 NavigationBarItem(
-                                    selected = false,
+                                    selected = fenetreSelectionnee == "listeTachesEnRetard",
                                     onClick = {
                                         navController.navigate("listeTachesEnRetard")
+                                        fenetreSelectionnee = "listeTachesEnRetard"
                                     },
                                     icon = {
                                         Icon(
@@ -212,6 +251,19 @@ class MainActivity : ComponentActivity() {
                                         )
                                     },
                                     label = { Text("En retard") })
+                                NavigationBarItem(
+                                    selected = fenetreSelectionnee == "avatar",
+                                    onClick = {
+                                        navController.navigate("avatar")
+                                        fenetreSelectionnee = "avatar"
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.Default.AccountCircle,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    label = { Text("Avatar") })
 
 
                             }
@@ -347,7 +399,8 @@ fun VerifierStatusTache(date: String, index: Int, status: String, context: Conte
 @Composable
 fun FormulaireAjoutTaches(
     navController: NavController,
-    applicationContext: Context
+    applicationContext: Context,
+    fenetreSelectionnee : String
 ) {
 
     val openDialog = remember { mutableStateOf(true) }
@@ -464,7 +517,7 @@ fun FormulaireAjoutTaches(
                                 "myfile",
                                 applicationContext
                             )
-                            navController.navigate("listeTaches")
+                            navController.navigate(fenetreSelectionnee)
                             openDialog.value = false
 
                         }
@@ -481,7 +534,7 @@ fun FormulaireAjoutTaches(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
+fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, page : String) {
 
     val listeDeTaches = remember {
         mutableStateListOf(listOf("", "", 1, null))
@@ -502,8 +555,6 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
             } else {
                 date = null
             }
-            println("date " + date)
-
             listeDeTaches.add(
                 listOf(
                     tache,
@@ -536,10 +587,16 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String) {
                 item = tache,
                 onDelete = {
                     listeDeTaches -= tache
-                    if (contraintes == "En cours") {
+                    /*if (contraintes == "En cours") {
                         ChangerStatusTache("myfile", context, "Finie", tache[2] as Int)
                     } else {
                         SupprimerUneDonneeDuFichier("myfile", context, tache[2] as Int)
+                    }*/
+                    if (page == "listeTachesFinies"){
+                        SupprimerUneDonneeDuFichier("myfile", context, tache[2] as Int)
+                    }
+                    else {
+                        ChangerStatusTache("myfile", context, "Finie", tache[2] as Int)
                     }
 
                 }
@@ -670,7 +727,7 @@ fun BackgroundDuSwipe(
     swipeDismissState: DismissState, contraintes: String
 ) {
     val color = if (swipeDismissState.dismissDirection == DismissDirection.StartToEnd) {
-        if (contraintes == "En cours") {
+        if (contraintes == "En cours" || contraintes == "En retard") {
             Color.Green
         } else {
             Color.Red
@@ -680,7 +737,7 @@ fun BackgroundDuSwipe(
     }
 
     val icon = if (swipeDismissState.dismissDirection == DismissDirection.StartToEnd) {
-        if (contraintes == "En cours") {
+        if (contraintes == "En cours" || contraintes == "En retard") {
             Icons.Default.Check
         } else {
             Icons.Default.Delete

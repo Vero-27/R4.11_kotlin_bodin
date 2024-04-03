@@ -23,7 +23,8 @@ fun ListeTachesEnRetard(applicationContexte: Context, innerPadding: PaddingValue
                     .fillMaxSize()
             ) {
                 val donnees = PrendreDonneesDuFichier("myfile", applicationContexte)
-                AfficherDonnees(tableau = donnees, applicationContexte, "En retard")
+                println ("en retard" + donnees)
+                AfficherDonnees(tableau = donnees, applicationContexte, "En retard", "listeTachesEnRetard")
             }
         }
     }

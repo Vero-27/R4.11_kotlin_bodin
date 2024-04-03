@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.to_do_list.android.AfficherDonnees
 import com.example.to_do_list.android.PrendreDonneesDuFichier
+import org.json.JSONObject
 
 @Composable
 fun ListeTachesFinies(applicationContexte: Context, innerPadding: PaddingValues) {
@@ -24,8 +25,10 @@ fun ListeTachesFinies(applicationContexte: Context, innerPadding: PaddingValues)
                     .fillMaxSize()
             ) {
                 val donnees = PrendreDonneesDuFichier("myfile", applicationContexte)
-                AfficherDonnees(tableau = donnees, applicationContexte, "Finie")
+                AfficherDonnees(tableau = donnees, applicationContexte, "Finie", "listeTachesFinies")
             }
         }
     }
 }
+
+
