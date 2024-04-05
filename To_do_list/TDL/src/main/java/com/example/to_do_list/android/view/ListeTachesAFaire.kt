@@ -23,7 +23,7 @@ fun ListeTachesAFaire(applicationContext : Context, innerPadding : PaddingValues
                     .fillMaxSize()
             ) {
                 val donnees = PrendreDonneesDuFichier("myfile", applicationContext)
-                for (i in 0 until donnees.length()) {
+                for (i in 1 until donnees.length()) {
                     val task = donnees[i]
                     val taskString = task.toString()
                     val temp = JSONObject(taskString)

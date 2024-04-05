@@ -2,9 +2,12 @@ package com.example.to_do_list.android
 
 import android.R
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -73,6 +76,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -112,8 +116,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    /*MettreDonneesDansFichier("myfile", "", applicationContext)
-                    SupprimerDonneesDuFichier("myfile", applicationContext)*/
+                    MettreDonneesDansFichier("myfile", "", applicationContext)
+                    SupprimerDonneesDuFichier("myfile", applicationContext)
                     val navController = rememberNavController()
                     var fenetreSelectionnee by remember { mutableStateOf("listeAFaire") }
                     Scaffold(
@@ -319,7 +323,7 @@ fun SupprimerDonneesDuFichier(fileName: String, context: Context) {
     }
 
     val string =
-        "[\n" + "  ]\n"
+        "[ {\"Nombre\" : 0 } ]"
 
     MettreDonneesDansFichier(string, fileName, context)
 }
@@ -329,7 +333,7 @@ fun SupprimerUneDonneeDuFichier(fileName: String, context: Context, index: Int) 
     if (donneesActuelles.length() == 1) {
         SupprimerDonneesDuFichier(fileName, context)
     } else {
-        for (i in 0 until donneesActuelles.length()) {
+        for (i in 1 until donneesActuelles.length()) {
             val task = donneesActuelles[i]
             val taskString = task.toString()
             val temp = JSONObject(taskString)
@@ -341,10 +345,7 @@ fun SupprimerUneDonneeDuFichier(fileName: String, context: Context, index: Int) 
                 break
             }
         }
-
-
     }
-
 }
 
 fun VerifierDateTache(date: String): Boolean {
@@ -359,7 +360,7 @@ fun VerifierDateTache(date: String): Boolean {
 
 fun ChangerStatusTache(fileName: String, context: Context, status: String, index: Int) {
     var donneesActuelles = PrendreDonneesDuFichier(fileName, context)
-    for (i in 0 until donneesActuelles.length()) {
+    for (i in 1 until donneesActuelles.length()) {
         val task = donneesActuelles[i]
         val taskString = task.toString()
         val temp = JSONObject(taskString)
@@ -368,11 +369,10 @@ fun ChangerStatusTache(fileName: String, context: Context, status: String, index
             val new = JSONObject()
             val task = temp.getString("Task")
             val description = temp.getString("Description")
-            val date: String?
-            if (temp.isNull("Date")) {
-                date = null
+            val date: String? = if (temp.isNull("Date")) {
+                null
             } else {
-                date = temp.getString("Date")
+                temp.getString("Date")
             }
             SupprimerUneDonneeDuFichier(fileName, context, index)
             new.put("Task", task)
@@ -395,6 +395,19 @@ fun VerifierStatusTache(date: String, index: Int, status: String, context: Conte
     }
 }
 
+fun ajouterAvater (fileName: String, context : Context){
+    var donneesActuelles = PrendreDonneesDuFichier(fileName, context)
+    val task = donneesActuelles[0]
+    val taskString = task.toString()
+    val temp = JSONObject(taskString)
+    val nombre = temp.getString("Nombre")
+    val new = JSONObject()
+    new.put("Nombre", nombre.toInt()+1)
+    donneesActuelles.put(0, new)
+    MettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
+}
+
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormulaireAjoutTaches(
@@ -408,7 +421,7 @@ fun FormulaireAjoutTaches(
         AlertDialog(
             onDismissRequest = {
                 openDialog.value = false
-                navController.navigate("listeTaches")
+                navController.navigate(fenetreSelectionnee)
             },
             modifier = Modifier
                 .background(Color.White),
@@ -460,7 +473,7 @@ fun FormulaireAjoutTaches(
                     )
                     Button(
                         onClick = {
-                            var date: LocalDate? = null
+                            val date: LocalDate?
                             if (textFieldDate.text != "") {
                                 val dateRenseignee = textFieldDate.text
                                 if (dateRenseignee.length == 8) {
@@ -480,6 +493,8 @@ fun FormulaireAjoutTaches(
                                             moisRenseigne.toInt(),
                                             jourRenseigne.toInt()
                                         )
+                                            scheduleAlarm(textFieldName.text, dateRenseignee, applicationContext)
+
                                     } else {
                                         textErreur = "La date renseignée n'est pas valide"
                                         return@Button
@@ -517,6 +532,7 @@ fun FormulaireAjoutTaches(
                                 "myfile",
                                 applicationContext
                             )
+                            println("donnees apres ajout " + donnees)
                             navController.navigate(fenetreSelectionnee)
                             openDialog.value = false
 
@@ -540,7 +556,7 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, p
         mutableStateListOf(listOf("", "", 1, null))
     }
     listeDeTaches.removeAll(listeDeTaches)
-    for (i in 0 until tableau.length()) {
+    for (i in 1 until tableau.length()) {
         val task = tableau[i]
         val taskString = task.toString()
         val temp = JSONObject(taskString)
@@ -597,6 +613,7 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, p
                     }
                     else {
                         ChangerStatusTache("myfile", context, "Finie", tache[2] as Int)
+                        ajouterAvater("myfile", context)
                     }
 
                 }

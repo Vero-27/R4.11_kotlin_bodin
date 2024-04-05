@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.to_do_list.android.PrendreDonneesDuFichier
+import org.json.JSONObject
 
 @Composable
 fun Avatar (applicationContext : Context, innerPadding : PaddingValues){
@@ -29,20 +31,17 @@ fun Avatar (applicationContext : Context, innerPadding : PaddingValues){
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
-                val cercles = remember { mutableListOf<Int>()}
-                for (i in 1 until 50){
-                    var cercle = i
-                    cercles.add(cercle)
-                }
+                val donnees = PrendreDonneesDuFichier("myfile", applicationContext)
+                val temp = JSONObject(donnees[0].toString())
+                val nombre = temp.getString("Nombre")
 
                 LazyVerticalGrid(columns = GridCells.Adaptive(65.dp), content = {
-                    items (cercles.size){  item ->
+                    items (100){  item ->
 
-                        if (item < 20 ){
+                        if (item < nombre.toInt()){
                         AsyncImage(
-                            model = "https://avatar.iran.liara.run/public/" + item.toString(),
+                            model = "https://avatar.iran.liara.run/public/" + item.toString()+1,
                             contentDescription = "Translated description of what the image contains"
-                            //modifier = Modifier.size(50.dp)
                         )}
                         else {
                             Canvas(
