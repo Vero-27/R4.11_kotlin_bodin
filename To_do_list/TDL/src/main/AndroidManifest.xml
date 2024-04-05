@@ -24,7 +24,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name="com.example.to_do_list.android.AlarmReceiver" />
+        <receiver android:name="com.example.to_do_list.android.AfficheurDeNotifications" />
     </application>
 
 </manifest>

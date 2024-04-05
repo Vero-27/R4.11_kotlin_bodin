@@ -1,13 +1,9 @@
 package com.example.to_do_list.android
 
-import android.R
 import android.annotation.SuppressLint
-import android.app.AlarmManager
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -76,7 +72,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -89,8 +84,6 @@ import com.example.to_do_list.android.view.ListeTachesFinies
 import com.example.to_do_list.android.view.MaskVisualTransformation
 import com.example.to_do_list.android.view.verifierValiditeDate
 import kotlinx.coroutines.delay
-import nl.dionsegijn.konfetti.compose.KonfettiView
-import nl.dionsegijn.konfetti.core.models.Size
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FileInputStream
@@ -116,8 +109,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    MettreDonneesDansFichier("myfile", "", applicationContext)
-                    SupprimerDonneesDuFichier("myfile", applicationContext)
+                    /*MettreDonneesDansFichier("myfile", "", applicationContext)
+                    SupprimerDonneesDuFichier("myfile", applicationContext)*/
                     val navController = rememberNavController()
                     var fenetreSelectionnee by remember { mutableStateOf("listeAFaire") }
                     Scaffold(
@@ -407,6 +400,7 @@ fun ajouterAvater (fileName: String, context : Context){
     MettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
 }
 
+@SuppressLint("SuspiciousIndentation")
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -493,7 +487,7 @@ fun FormulaireAjoutTaches(
                                             moisRenseigne.toInt(),
                                             jourRenseigne.toInt()
                                         )
-                                            scheduleAlarm(textFieldName.text, dateRenseignee, applicationContext)
+                                        plannifierNotification(textFieldName.text, dateRenseignee, applicationContext)
 
                                     } else {
                                         textErreur = "La date renseignée n'est pas valide"
