@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
+                    //test
                     /*MettreDonneesDansFichier("myfile", "", applicationContext)
                     SupprimerDonneesDuFichier("myfile", applicationContext)*/
                     val navController = rememberNavController()
