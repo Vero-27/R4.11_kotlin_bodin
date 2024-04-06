@@ -429,20 +429,7 @@ fun ajouterAvater (fileName: String, context : Context){
     MettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
 }
 
-class StoreData {
-    private val Context.storeData: DataStore<Preferences> by preferencesDataStore(name = "data")
-    suspend fun storeImage(context: Context, value: String) {
-        context.storeData.edit { preferences ->
-            preferences[stringPreferencesKey("image")] = value
-        }
-    }
-    suspend fun getImage(context: Context): Flow<String?> {
-        return context.storeData.data.map {
-                preferences ->
-            preferences[stringPreferencesKey("image")]
-        }
-    }
-}
+
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -513,42 +500,17 @@ fun FormulaireAjoutTaches(
                         Text(it.toString())
                     }
 
-                    /*var imageUri: Any? by remember { mutableStateOf(null) }
-
-                    val photoPicker = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.PickVisualMedia()
-                    ) {
-                        if (it != null) {
-                            imageUri = it
-                        } else {
-                        }
-                    }*/
                     Button (
                         onClick = {
-                            /*photoPicker.launch(
-                                PickVisualMediaRequest(
-                                    ActivityResultContracts.PickVisualMedia.ImageOnly
-                                )
-                            )*/
                             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                                 .apply {
                                     addCategory(Intent.CATEGORY_OPENABLE)
                                 }
                             launcher.launch(intent)
-                            println("intent : " + MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                         }
                     ){
                         Text("Image")
                     }
-                    /*LaunchedEffect(key1 = true) {
-                        dataStore.getImage(applicationContext).collect {
-                            if (it != null){
-                                imageUri = Uri.parse(it)}
-                            else{
-                                imageUri = null
-                            }
-                        }
-                    }*/
                     Text(
                         text = textErreur
                     )
