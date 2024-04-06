@@ -151,7 +151,7 @@ fun FelicitationDialog(
 }
 
 @Composable
-fun felicitation(
+fun Felicitation(
     onDismissRequest: () -> Unit,
     applicationContext: Context,
     url: String

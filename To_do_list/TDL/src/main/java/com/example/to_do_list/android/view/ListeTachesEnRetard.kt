@@ -1,7 +1,6 @@
 package com.example.to_do_list.android.view
 
 import android.content.Context
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,9 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
-import com.example.to_do_list.android.AfficherDonnees
-import com.example.to_do_list.android.PrendreDonneesDuFichier
+import com.example.to_do_list.android.controller.prendreDonneesDuFichier
 
 @Composable
 fun ListeTachesEnRetard(applicationContexte: Context, innerPadding: PaddingValues) {
@@ -22,8 +19,8 @@ fun ListeTachesEnRetard(applicationContexte: Context, innerPadding: PaddingValue
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
-                val donnees = PrendreDonneesDuFichier("myfile", applicationContexte)
-                AfficherDonnees(tableau = donnees, applicationContexte, "En retard", "listeTachesEnRetard")
+                val donnees = prendreDonneesDuFichier("myfile", applicationContexte)
+                AfficherDonnees(donnees = donnees, applicationContexte, "En retard", "listeTachesEnRetard")
             }
         }
     }

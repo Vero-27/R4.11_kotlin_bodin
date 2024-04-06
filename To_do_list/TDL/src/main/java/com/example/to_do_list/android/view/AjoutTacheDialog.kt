@@ -26,20 +26,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -60,25 +55,26 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.example.to_do_list.android.MettreDonneesDansFichier
-import com.example.to_do_list.android.PrendreDonneesDuFichier
 import com.example.to_do_list.android.R
-import com.example.to_do_list.android.plannifierNotification
+import com.example.to_do_list.android.controller.mettreDonneesDansFichier
+import com.example.to_do_list.android.controller.plannifierNotification
+import com.example.to_do_list.android.controller.prendreDonneesDuFichier
 import org.json.JSONObject
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.math.absoluteValue
 
 @Composable
 fun AjouterTacheDialog(
@@ -179,7 +175,7 @@ fun AjouterTacheDialog(
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
-fun ajoutTache(
+fun AjoutTache(
     applicationContext: Context,
     navController : NavController,
     fenetreActuelle : String
@@ -384,7 +380,7 @@ fun ajoutTache(
                             "En cours"
                         }
 
-                        val donnees = PrendreDonneesDuFichier("myfile", applicationContext)
+                        val donnees = prendreDonneesDuFichier("myfile", applicationContext)
                         val new = JSONObject()
                         new.put("Task", textFieldName.text)
                         new.put("Description", textFieldDescription.text)
@@ -396,7 +392,7 @@ fun ajoutTache(
                             donnees.length() + heure.dayOfMonth + heure.monthValue + heure.year + heure.dayOfYear + heure.hour + heure.minute + heure.second + heure.dayOfYear + heure.dayOfMonth
                         )
                         donnees.put(new)
-                        MettreDonneesDansFichier(
+                        mettreDonneesDansFichier(
                             donnees.toString(),
                             "myfile",
                             applicationContext
@@ -414,3 +410,59 @@ fun ajoutTache(
     }
 }
 
+fun verifierValiditeDate (jour : Int, mois : Int): Boolean {
+    if (jour < 1 || jour > 31){
+        return false
+    }
+    if (mois < 1 || mois > 12){
+        return false
+    }
+
+    if (mois == 2 && jour > 29){
+        return false
+    }
+    if (mois == 4 || mois == 6 || mois == 9 || mois == 11){
+        if (jour > 30){
+            return false
+        }
+    }
+    return true
+}
+
+class MaskVisualTransformation(private val mask: String) : VisualTransformation {
+
+    private val specialSymbolsIndices = mask.indices.filter { mask[it] != '#' }
+
+    override fun filter(text: AnnotatedString): TransformedText {
+        var out = ""
+        var maskIndex = 0
+        text.forEach { char ->
+            while (specialSymbolsIndices.contains(maskIndex)) {
+                out += mask[maskIndex]
+                maskIndex++
+            }
+            out += char
+            maskIndex++
+        }
+        return TransformedText(AnnotatedString(out), offsetTranslator())
+    }
+
+    private fun offsetTranslator(): OffsetMapping = object : OffsetMapping {
+        override fun originalToTransformed(offset: Int): Int {
+            val offsetValue = offset.absoluteValue
+            if (offsetValue == 0) return 0
+            var numberOfHashtags = 0
+            val masked = mask.takeWhile {
+                if (it == '#') numberOfHashtags++
+                numberOfHashtags < offsetValue
+            }
+            return masked.length + 1
+        }
+
+        override fun transformedToOriginal(offset: Int): Int {
+            return mask.take(offset.absoluteValue).count { it == '#' }
+        }
+    }
+
+
+}

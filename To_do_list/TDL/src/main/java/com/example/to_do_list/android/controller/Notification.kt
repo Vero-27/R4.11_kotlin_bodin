@@ -1,4 +1,4 @@
-package com.example.to_do_list.android
+package com.example.to_do_list.android.controller
 
 import android.annotation.SuppressLint
 import android.app.AlarmManager
@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.to_do_list.android.R
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit

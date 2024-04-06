@@ -1,7 +1,6 @@
 package com.example.to_do_list.android.view
 
 import android.content.Context
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,10 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
-import com.example.to_do_list.android.AfficherDonnees
-import com.example.to_do_list.android.PrendreDonneesDuFichier
-import com.example.to_do_list.android.VerifierStatusTache
+import com.example.to_do_list.android.controller.prendreDonneesDuFichier
+import com.example.to_do_list.android.controller.verifierStatusTache
 import org.json.JSONObject
 
 @Composable
@@ -24,20 +21,20 @@ fun ListeTaches(applicationContext: Context, innerPadding: PaddingValues) {
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
-                val donnees = PrendreDonneesDuFichier("myfile", applicationContext)
+                val donnees = prendreDonneesDuFichier("myfile", applicationContext)
                 for (i in 1 until donnees.length()) {
-                    val task = donnees[i]
-                    val taskString = task.toString()
-                    val temp = JSONObject(taskString)
-                    var date = temp.isNull("Date")
-                    if (!date) {
-                        val date2 = temp.getString("Date")
-                        val index = temp.getString("Index")
-                        val status = temp.getString("Status")
-                        VerifierStatusTache(date2, index.toInt(), status, applicationContext)
+                    val tache = donnees[i]
+                    val tacheString = tache.toString()
+                    val temporaire = JSONObject(tacheString)
+                    val tacheDate = temporaire.isNull("Date")
+                    if (!tacheDate) {
+                        val date2 = temporaire.getString("Date")
+                        val index = temporaire.getString("Index")
+                        val status = temporaire.getString("Status")
+                        verifierStatusTache(date2, index.toInt(), status, applicationContext)
                     }
                 }
-                AfficherDonnees(tableau = donnees, applicationContext, "En cours", "listeTaches")
+                AfficherDonnees(donnees = donnees, applicationContext, "En cours", "listeTaches")
             }
 
         }
