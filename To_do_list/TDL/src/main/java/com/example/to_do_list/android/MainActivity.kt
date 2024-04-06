@@ -2,10 +2,17 @@ package com.example.to_do_list.android
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.media.Image
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -13,6 +20,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +29,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -62,20 +71,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.core.DataStore
+import androidx.datastore.dataStoreFile
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.to_do_list.android.view.Avatar
 import com.example.to_do_list.android.view.ListeTaches
 import com.example.to_do_list.android.view.ListeTachesAFaire
@@ -84,6 +105,9 @@ import com.example.to_do_list.android.view.ListeTachesFinies
 import com.example.to_do_list.android.view.MaskVisualTransformation
 import com.example.to_do_list.android.view.verifierValiditeDate
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FileInputStream
@@ -108,9 +132,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    //test
-                    /*MettreDonneesDansFichier("myfile", "", applicationContext)
-                    SupprimerDonneesDuFichier("myfile", applicationContext)*/
+
+                    MettreDonneesDansFichier("myfile", "", applicationContext)
+                    SupprimerDonneesDuFichier("myfile", applicationContext)
                     val navController = rememberNavController()
                     var fenetreSelectionnee by remember { mutableStateOf("listeAFaire") }
                     Scaffold(
@@ -362,20 +386,25 @@ fun ChangerStatusTache(fileName: String, context: Context, status: String, index
             val new = JSONObject()
             val task = temp.getString("Task")
             val description = temp.getString("Description")
+            val image: String? = if (temp.isNull("Image")) {
+                null
+            } else {
+                temp.getString("Image")
+            }
             val date: String? = if (temp.isNull("Date")) {
                 null
             } else {
                 temp.getString("Date")
             }
-            SupprimerUneDonneeDuFichier(fileName, context, index)
+            //SupprimerUneDonneeDuFichier(fileName, context, index)
             new.put("Task", task)
             new.put("Description", description)
+            new.put("Image", image)
             new.put("Date", date)
             new.put("Status", status)
             new.put("Index", index)
 
-            donneesActuelles = PrendreDonneesDuFichier(fileName, context)
-            donneesActuelles.put(new)
+            donneesActuelles.put(i, new)
             break
         }
     }
@@ -400,7 +429,20 @@ fun ajouterAvater (fileName: String, context : Context){
     MettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
 }
 
-@SuppressLint("SuspiciousIndentation")
+class StoreData {
+    private val Context.storeData: DataStore<Preferences> by preferencesDataStore(name = "data")
+    suspend fun storeImage(context: Context, value: String) {
+        context.storeData.edit { preferences ->
+            preferences[stringPreferencesKey("image")] = value
+        }
+    }
+    suspend fun getImage(context: Context): Flow<String?> {
+        return context.storeData.data.map {
+                preferences ->
+            preferences[stringPreferencesKey("image")]
+        }
+    }
+}
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -462,6 +504,51 @@ fun FormulaireAjoutTaches(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
 
                     )
+                    var imageUri by remember { mutableStateOf<Uri?>(null) }
+                    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                        println("selected file URI ${it.data?.data}")
+                        imageUri = it.data?.data
+                    }
+                    imageUri?.let {
+                        Text(it.toString())
+                    }
+
+                    /*var imageUri: Any? by remember { mutableStateOf(null) }
+
+                    val photoPicker = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.PickVisualMedia()
+                    ) {
+                        if (it != null) {
+                            imageUri = it
+                        } else {
+                        }
+                    }*/
+                    Button (
+                        onClick = {
+                            /*photoPicker.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )*/
+                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                                .apply {
+                                    addCategory(Intent.CATEGORY_OPENABLE)
+                                }
+                            launcher.launch(intent)
+                            println("intent : " + MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                        }
+                    ){
+                        Text("Image")
+                    }
+                    /*LaunchedEffect(key1 = true) {
+                        dataStore.getImage(applicationContext).collect {
+                            if (it != null){
+                                imageUri = Uri.parse(it)}
+                            else{
+                                imageUri = null
+                            }
+                        }
+                    }*/
                     Text(
                         text = textErreur
                     )
@@ -515,6 +602,7 @@ fun FormulaireAjoutTaches(
                             new.put("Task", textFieldName.text)
                             new.put("Description", textFieldDescription.text)
                             new.put("Date", date)
+                            new.put("Image", imageUri)
                             new.put("Status", status)
                             new.put(
                                 "Index",
@@ -547,7 +635,7 @@ fun FormulaireAjoutTaches(
 fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, page : String) {
 
     val listeDeTaches = remember {
-        mutableStateListOf(listOf("", "", 1, null))
+        mutableStateListOf(listOf("", "", 1, null, null))
     }
     listeDeTaches.removeAll(listeDeTaches)
     for (i in 1 until tableau.length()) {
@@ -559,18 +647,25 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, p
             val index = temp.getString("Index")
             val tache = temp.getString("Task")
             val description = temp.getString("Description")
+            var image: String?
+            image = if(!temp.isNull("Image")){
+                temp.getString("Image")
+            } else{
+                null
+            }
             var date: String?
-            if (!temp.isNull("Date")) {
-                date = temp.getString("Date")
+            date = if (!temp.isNull("Date")) {
+                temp.getString("Date")
             } else {
-                date = null
+                null
             }
             listeDeTaches.add(
                 listOf(
                     tache,
                     description,
                     index.toInt(),
-                    date
+                    date,
+                    image
 
                 )
             )
@@ -668,6 +763,17 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, p
                                     .padding(horizontal = 5.dp, vertical = 2.dp),
                                 overflow = TextOverflow.Ellipsis
                             )
+                            if (tache[4]!=null){
+                            AsyncImage(
+                                modifier = Modifier
+                                    .size(250.dp),
+                                model = ImageRequest.Builder(context)
+                                    .data(tache[4])
+                                    .crossfade(enable = true)
+                                    .build(),
+                                contentDescription = "Image",
+                                contentScale = ContentScale.Crop)
+                            }}
                         }
                     }
                 }
@@ -677,7 +783,7 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, p
 
 
     }
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

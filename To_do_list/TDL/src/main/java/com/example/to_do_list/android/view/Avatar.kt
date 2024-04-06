@@ -34,13 +34,14 @@ fun Avatar (applicationContext : Context, innerPadding : PaddingValues){
                 val donnees = PrendreDonneesDuFichier("myfile", applicationContext)
                 val temp = JSONObject(donnees[0].toString())
                 val nombre = temp.getString("Nombre")
+                println("nombre" + nombre)
 
                 LazyVerticalGrid(columns = GridCells.Adaptive(65.dp), content = {
                     items (100){  item ->
 
                         if (item < nombre.toInt()){
                         AsyncImage(
-                            model = "https://avatar.iran.liara.run/public/" + item.toString()+1,
+                            model = "https://avatar.iran.liara.run/public/" + (item+1).toString(),
                             contentDescription = "Translated description of what the image contains"
                         )}
                         else {
