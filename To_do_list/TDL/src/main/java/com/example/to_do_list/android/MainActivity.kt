@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -71,7 +72,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
@@ -116,27 +119,30 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            MyApplicationTheme {
+            MyApplicationTheme (
+
+            ){
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
+
                 ) {
 
-                    MettreDonneesDansFichier("myfile", "", applicationContext)
-                    SupprimerDonneesDuFichier("myfile", applicationContext)
+                    /*MettreDonneesDansFichier("myfile", "", applicationContext)
+                    SupprimerDonneesDuFichier("myfile", applicationContext)*/
                     val navController = rememberNavController()
-                    var fenetreSelectionnee by remember { mutableStateOf("listeAFaire") }
+                    var fenetreSelectionnee by remember { mutableStateOf("listeTaches") }
                     var showDialog by remember {
                         mutableStateOf(false)
                     }
                     Scaffold(
                         topBar = {
                             TopAppBar(
-                                title = { Text("Top App Bar") },
+                                title = { Text("Check it!") },
                                 colors = TopAppBarDefaults.topAppBarColors(
                                     titleContentColor = Color.Black,
-                                    containerColor = Color.LightGray
+                                    containerColor = Color(0xFFE7D9EC)
                                 ),
                                 navigationIcon = { Icons.Default.DateRange }
                             )
@@ -145,6 +151,7 @@ class MainActivity : ComponentActivity() {
                         floatingActionButton = {
                             FloatingActionButton(onClick = {
                                 navController.navigate("ajouterTaches")
+
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
@@ -158,16 +165,8 @@ class MainActivity : ComponentActivity() {
 
                             NavHost(
                                 navController = navController,
-                                startDestination = "listeAFAire"
+                                startDestination = "listeTaches"
                             ) {
-                                composable(
-                                route = "listeAFAire"
-                            ) {
-                                    ListeTachesAFaire(
-                                    applicationContext,
-                                    innerPadding
-                                )
-                            }
                                 composable(
                                     route = "listeTaches"
                                 ) {
@@ -179,12 +178,6 @@ class MainActivity : ComponentActivity() {
                                 composable(
                                     route = "ajouterTaches"
                                 ) {
-                                    /*FormulaireAjoutTaches(
-                                        navController = navController,
-                                        applicationContext = applicationContext,
-                                        fenetreSelectionnee
-                                    )*/
-
                                     showDialog=true
                                     AjouterTacheDialog(
                                         dialogVisible = showDialog,
@@ -229,21 +222,14 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         bottomBar = {
-                            NavigationBar {
+                            NavigationBar (
+                                modifier = Modifier
+                                    .background(Color.Transparent)
+                            ) {
                                 NavigationBarItem(
-                                    selected = fenetreSelectionnee == "listeAFaire",
-                                    onClick = {
-                                        navController.navigate("listeAFAire")
-                                        fenetreSelectionnee = "listeAFAire"
-                                    },
-                                    icon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Refresh,
-                                            contentDescription = null
-                                        )
-                                    },
-                                    label = { Text("A faire") })
-                                NavigationBarItem(
+                                    colors = (androidx.compose.material3.NavigationBarItemDefaults
+                                        .colors(
+                                            selectedIconColor = Color.Black)),
                                     selected = fenetreSelectionnee == "listeTaches",
                                     onClick = {
                                         navController.navigate("listeTaches")
@@ -257,19 +243,9 @@ class MainActivity : ComponentActivity() {
                                     },
                                     label = { Text("En cours") })
                                 NavigationBarItem(
-                                    selected = fenetreSelectionnee == "listeTachesFinies",
-                                    onClick = {
-                                        navController.navigate("listeTachesFinies")
-                                        fenetreSelectionnee = "listeTachesFinies"
-                                    },
-                                    icon = {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = null
-                                        )
-                                    },
-                                    label = { Text("Finie") })
-                                NavigationBarItem(
+                                    colors = (androidx.compose.material3.NavigationBarItemDefaults
+                                        .colors(
+                                            selectedIconColor = Color.Black)),
                                     selected = fenetreSelectionnee == "listeTachesEnRetard",
                                     onClick = {
                                         navController.navigate("listeTachesEnRetard")
@@ -283,6 +259,26 @@ class MainActivity : ComponentActivity() {
                                     },
                                     label = { Text("En retard") })
                                 NavigationBarItem(
+                                    colors = (androidx.compose.material3.NavigationBarItemDefaults
+                                        .colors(
+                                            selectedIconColor = Color.Black
+                                        )),
+                                    selected = fenetreSelectionnee == "listeTachesFinies",
+                                    onClick = {
+                                        navController.navigate("listeTachesFinies")
+                                        fenetreSelectionnee = "listeTachesFinies"
+                                    },
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    label = { Text("Finie") })
+                                NavigationBarItem(
+                                    colors = (androidx.compose.material3.NavigationBarItemDefaults
+                                        .colors(
+                                            selectedIconColor = Color.Black)),
                                     selected = fenetreSelectionnee == "avatar",
                                     onClick = {
                                         navController.navigate("avatar")
@@ -438,173 +434,6 @@ fun ajouterAvater (fileName: String, context : Context){
     donneesActuelles.put(0, new)
     MettreDonneesDansFichier(donneesActuelles.toString(), "myfile", context)
 }
-
-
-@RequiresApi(Build.VERSION_CODES.S)
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FormulaireAjoutTaches(
-    navController: NavController,
-    applicationContext: Context,
-    fenetreSelectionnee : String
-) {
-
-    val openDialog = remember { mutableStateOf(true) }
-    if (openDialog.value) {
-        AlertDialog(
-            onDismissRequest = {
-                openDialog.value = false
-                navController.navigate(fenetreSelectionnee)
-            },
-            modifier = Modifier
-                .background(Color.White),
-        ) {
-            Box(
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text("Ajouter une tâche")
-                    var textFieldName by remember { mutableStateOf(TextFieldValue("")) }
-                    var textErreur by remember { mutableStateOf("") }
-                    OutlinedTextField(
-                        value = textFieldName,
-                        onValueChange = {
-                            textFieldName = it
-                        },
-                        label = { Text(text = "Nom de la tache") },
-                    )
-                    var textFieldDescription by remember { mutableStateOf(TextFieldValue("")) }
-                    OutlinedTextField(
-                        value = textFieldDescription,
-                        onValueChange = {
-                            textFieldDescription = it
-                        },
-                        label = { Text(text = "Description de la tache") },
-                    )
-                    var textFieldDate by remember { mutableStateOf(TextFieldValue("")) }
-                    val DATE_MASK = "##/##/####"
-                    val DATE_LENGTH = 8
-                    OutlinedTextField(
-                        value = textFieldDate,
-                        onValueChange = {
-                            if (it.text.length <= DATE_LENGTH) {
-                                textFieldDate = it
-                            }
-
-                        },
-                        label = { Text(text = "Date limite de réalisation") },
-                        visualTransformation = MaskVisualTransformation(DATE_MASK),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-
-                    )
-                    var imageUri by remember { mutableStateOf<Uri?>(null) }
-                    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                        println("selected file URI ${it.data?.data}")
-                        imageUri = it.data?.data
-                    }
-                    imageUri?.let {
-                        Text(it.toString())
-                    }
-
-                    Button (
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-                                .apply {
-                                    addCategory(Intent.CATEGORY_OPENABLE)
-                                }
-                            launcher.launch(intent)
-                        }
-                    ){
-                        Text("Image")
-                    }
-                    Text(
-                        text = textErreur
-                    )
-                    Button(
-                                onClick = {
-                            val date: LocalDate?
-                            if (textFieldDate.text != "") {
-                                val dateRenseignee = textFieldDate.text
-                                if (dateRenseignee.length == 8) {
-                                    val jourRenseigne =
-                                        dateRenseignee[0] + dateRenseignee[1].toString()
-                                    val moisRenseigne =
-                                        dateRenseignee[2] + dateRenseignee[3].toString()
-                                    val anneeRenseignee =
-                                        dateRenseignee[4] + dateRenseignee[5].toString() + dateRenseignee[6].toString() + dateRenseignee[7].toString()
-                                    if (verifierValiditeDate(
-                                            jourRenseigne.toInt(),
-                                            moisRenseigne.toInt()
-                                        )
-                                    ) {
-                                        date = LocalDate.of(
-                                            anneeRenseignee.toInt(),
-                                            moisRenseigne.toInt(),
-                                            jourRenseigne.toInt()
-                                        )
-                                        plannifierNotification(textFieldName.text, dateRenseignee, applicationContext)
-
-                                    } else {
-                                        textErreur = "La date renseignée n'est pas valide"
-                                        return@Button
-                                    }
-                                } else {
-                                    textErreur = "La date renseignée n'est pas valide"
-                                    return@Button
-
-                                }
-                            } else {
-                                date = null
-                            }
-
-                            val heure = LocalDateTime.now()
-
-                            val status = if (date != null && date.isBefore(LocalDate.now())) {
-                                "En retard"
-                            } else {
-                                "En cours"
-                            }
-
-                            val donnees = PrendreDonneesDuFichier("myfile", applicationContext)
-                            val new = JSONObject()
-                            new.put("Task", textFieldName.text)
-                            new.put("Description", textFieldDescription.text)
-                            new.put("Date", date)
-                            new.put("Image", imageUri)
-                            new.put("Status", status)
-                            new.put(
-                                "Index",
-                                donnees.length() + heure.dayOfMonth + heure.monthValue + heure.year + heure.dayOfYear + heure.hour + heure.minute + heure.second + heure.dayOfYear + heure.dayOfMonth
-                            )
-                            donnees.put(new)
-                            MettreDonneesDansFichier(
-                                donnees.toString(),
-                                "myfile",
-                                applicationContext
-                            )
-                            println("donnees apres ajout " + donnees)
-                            navController.navigate(fenetreSelectionnee)
-                            openDialog.value = false
-
-                        }
-                    ) {
-                        Text(
-                            text = "Ajouter"
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

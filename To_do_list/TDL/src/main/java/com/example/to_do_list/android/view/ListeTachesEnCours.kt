@@ -16,7 +16,7 @@ import com.example.to_do_list.android.VerifierStatusTache
 import org.json.JSONObject
 
 @Composable
-fun ListeTaches(applicationContexte: Context, innerPadding: PaddingValues) {
+fun ListeTaches(applicationContext: Context, innerPadding: PaddingValues) {
     Box {
         Column {
             Column(
@@ -24,8 +24,20 @@ fun ListeTaches(applicationContexte: Context, innerPadding: PaddingValues) {
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
-                val donnees = PrendreDonneesDuFichier("myfile", applicationContexte)
-                AfficherDonnees(tableau = donnees, applicationContexte, "En cours", "listeTaches")
+                val donnees = PrendreDonneesDuFichier("myfile", applicationContext)
+                for (i in 1 until donnees.length()) {
+                    val task = donnees[i]
+                    val taskString = task.toString()
+                    val temp = JSONObject(taskString)
+                    var date = temp.isNull("Date")
+                    if (!date) {
+                        val date2 = temp.getString("Date")
+                        val index = temp.getString("Index")
+                        val status = temp.getString("Status")
+                        VerifierStatusTache(date2, index.toInt(), status, applicationContext)
+                    }
+                }
+                AfficherDonnees(tableau = donnees, applicationContext, "En cours", "listeTaches")
             }
 
         }
