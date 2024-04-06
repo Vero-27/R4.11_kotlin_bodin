@@ -3,7 +3,6 @@ package com.example.to_do_list.android
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.media.Image
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -11,7 +10,6 @@ import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -20,7 +18,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,26 +68,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.core.DataStore
-import androidx.datastore.dataStoreFile
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -98,16 +86,15 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.to_do_list.android.view.Avatar
+import com.example.to_do_list.android.view.FelicitationDialog
 import com.example.to_do_list.android.view.ListeTaches
 import com.example.to_do_list.android.view.ListeTachesAFaire
 import com.example.to_do_list.android.view.ListeTachesEnRetard
 import com.example.to_do_list.android.view.ListeTachesFinies
 import com.example.to_do_list.android.view.MaskVisualTransformation
+import com.example.to_do_list.android.view.felicitation
 import com.example.to_do_list.android.view.verifierValiditeDate
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FileInputStream
@@ -515,7 +502,7 @@ fun FormulaireAjoutTaches(
                         text = textErreur
                     )
                     Button(
-                        onClick = {
+                                onClick = {
                             val date: LocalDate?
                             if (textFieldDate.text != "") {
                                 val dateRenseignee = textFieldDate.text
@@ -592,6 +579,10 @@ fun FormulaireAjoutTaches(
     }
 }
 
+
+
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, page : String) {
@@ -634,6 +625,21 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, p
 
         }
     }
+    var show by remember { mutableStateOf(false) }
+    var showDialog by remember {
+        mutableStateOf(false)
+    }
+
+    FelicitationDialog(
+        dialogVisible = showDialog,
+        onDismissRequest = { showDialog = false }
+    ) {
+        felicitation(
+            onDismissRequest = { showDialog = false },
+            applicationContext = context,
+            url = "https://avatar.iran.liara.run/public/" + (JSONObject(tableau [0].toString()).getString("Nombre").toInt()+1).toString()
+        )
+    }
 
 
     LazyColumn(
@@ -654,17 +660,15 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, p
                 item = tache,
                 onDelete = {
                     listeDeTaches -= tache
-                    /*if (contraintes == "En cours") {
-                        ChangerStatusTache("myfile", context, "Finie", tache[2] as Int)
-                    } else {
-                        SupprimerUneDonneeDuFichier("myfile", context, tache[2] as Int)
-                    }*/
                     if (page == "listeTachesFinies"){
                         SupprimerUneDonneeDuFichier("myfile", context, tache[2] as Int)
                     }
                     else {
                         ChangerStatusTache("myfile", context, "Finie", tache[2] as Int)
                         ajouterAvater("myfile", context)
+                        show = !show
+
+                        showDialog = true
                     }
 
                 }
@@ -745,7 +749,6 @@ fun AfficherDonnees(tableau: JSONArray, context: Context, contraintes: String, p
 
 
     }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
