@@ -199,7 +199,8 @@ fun felicitation(
         }
 
         Column(
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(4.dp),
+
         ) {
             Box(modifier = Modifier.height(8.dp))
             Text(

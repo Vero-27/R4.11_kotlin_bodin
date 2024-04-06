@@ -85,6 +85,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.to_do_list.android.view.AjouterTacheDialog
 import com.example.to_do_list.android.view.Avatar
 import com.example.to_do_list.android.view.FelicitationDialog
 import com.example.to_do_list.android.view.ListeTaches
@@ -92,6 +93,8 @@ import com.example.to_do_list.android.view.ListeTachesAFaire
 import com.example.to_do_list.android.view.ListeTachesEnRetard
 import com.example.to_do_list.android.view.ListeTachesFinies
 import com.example.to_do_list.android.view.MaskVisualTransformation
+import com.example.to_do_list.android.view.afficherDialog
+import com.example.to_do_list.android.view.ajoutTache
 import com.example.to_do_list.android.view.felicitation
 import com.example.to_do_list.android.view.verifierValiditeDate
 import kotlinx.coroutines.delay
@@ -124,6 +127,9 @@ class MainActivity : ComponentActivity() {
                     SupprimerDonneesDuFichier("myfile", applicationContext)
                     val navController = rememberNavController()
                     var fenetreSelectionnee by remember { mutableStateOf("listeAFaire") }
+                    var showDialog by remember {
+                        mutableStateOf(false)
+                    }
                     Scaffold(
                         topBar = {
                             TopAppBar(
@@ -173,10 +179,27 @@ class MainActivity : ComponentActivity() {
                                 composable(
                                     route = "ajouterTaches"
                                 ) {
-                                    FormulaireAjoutTaches(
+                                    /*FormulaireAjoutTaches(
                                         navController = navController,
                                         applicationContext = applicationContext,
                                         fenetreSelectionnee
+                                    )*/
+
+                                    showDialog=true
+                                    AjouterTacheDialog(
+                                        dialogVisible = showDialog,
+                                        onDismissRequest = { showDialog = false }
+                                    ) {
+                                        ajoutTache(
+                                            applicationContext = applicationContext,
+                                            navController = navController,
+                                            fenetreSelectionnee = fenetreSelectionnee
+                                        )
+                                    }
+                                    afficherDialog(
+                                        applicationContext = applicationContext ,
+                                        fenetreSelectionnee = fenetreSelectionnee,
+                                        navController = navController
                                     )
                                 }
                                 composable(
