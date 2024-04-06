@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -60,6 +61,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -144,8 +146,8 @@ fun AjouterTacheDialog(
                             .height(380.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .border(
-                                width= 2.dp,
-                                shape=RoundedCornerShape(16.dp),
+                                width = 2.dp,
+                                shape = RoundedCornerShape(16.dp),
                                 brush = Brush.linearGradient(
                                     colors = listOf(
                                         Color(0xFF80DEEA),
@@ -157,7 +159,7 @@ fun AjouterTacheDialog(
                             )
                             .background(
                                 MaterialTheme.colorScheme.surface,
-                                ),
+                            ),
 
                         contentAlignment = Alignment.Center
                     ) {
@@ -179,8 +181,8 @@ fun AjouterTacheDialog(
 @Composable
 fun ajoutTache(
     applicationContext: Context,
-    fenetreSelectionnee: String,
-    navController: NavController
+    navController : NavController,
+    fenetreActuelle : String
 ) {
     Column(Modifier.background(MaterialTheme.colorScheme.surface)) {
 
@@ -306,15 +308,14 @@ fun ajoutTache(
                 println("selected file URI ${it.data?.data}")
                 imageUri = it.data?.data
             }
-            imageUri?.let {
-                Text(it.toString())
-            }
-
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                        val intent = Intent(
+                            Intent.ACTION_OPEN_DOCUMENT,
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        )
                             .apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
                             }
@@ -324,11 +325,9 @@ fun ajoutTache(
                     .padding(vertical = 6.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    tint = Color.LightGray,
-                )
+               Image (
+
+                   painterResource(id =R.drawable.galerie ), "")
             }
 
             Text(
@@ -358,7 +357,11 @@ fun ajoutTache(
                                         moisRenseigne.toInt(),
                                         jourRenseigne.toInt()
                                     )
-                                    plannifierNotification(textFieldName.text, dateRenseignee, applicationContext)
+                                    plannifierNotification(
+                                        textFieldName.text,
+                                        dateRenseignee,
+                                        applicationContext
+                                    )
 
                                 } else {
                                     textErreur = "La date renseignée n'est pas valide"
@@ -398,7 +401,7 @@ fun ajoutTache(
                             "myfile",
                             applicationContext
                         )
-                        navController.navigate(fenetreSelectionnee)
+                        navController.navigate(fenetreActuelle)
                     }
                     .weight(1f)
                     .padding(vertical = 3.dp),
@@ -411,20 +414,3 @@ fun ajoutTache(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
-@Composable
-fun afficherDialog (applicationContext: Context, navController : NavController, fenetreSelectionnee: String) {
-    var showDialog by remember {
-        mutableStateOf(false)
-    }
-    AjouterTacheDialog(
-        dialogVisible = showDialog,
-        onDismissRequest = { showDialog = false }
-    ) {
-        ajoutTache(
-            applicationContext = applicationContext,
-            navController = navController,
-            fenetreSelectionnee = fenetreSelectionnee
-        )
-    }
-}

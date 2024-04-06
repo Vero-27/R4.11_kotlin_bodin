@@ -48,7 +48,7 @@ fun Avatar (applicationContext : Context, innerPadding : PaddingValues){
                             Canvas(
                                 modifier = Modifier.size(65.dp),
                                 onDraw = {
-                                    drawCircle(Color.LightGray)
+                                    drawCircle(Color(0xFFCABEC5))
                                 }
                             )
                         }

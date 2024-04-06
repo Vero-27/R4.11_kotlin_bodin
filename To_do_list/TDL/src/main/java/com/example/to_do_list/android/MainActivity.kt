@@ -92,11 +92,9 @@ import com.example.to_do_list.android.view.AjouterTacheDialog
 import com.example.to_do_list.android.view.Avatar
 import com.example.to_do_list.android.view.FelicitationDialog
 import com.example.to_do_list.android.view.ListeTaches
-import com.example.to_do_list.android.view.ListeTachesAFaire
 import com.example.to_do_list.android.view.ListeTachesEnRetard
 import com.example.to_do_list.android.view.ListeTachesFinies
 import com.example.to_do_list.android.view.MaskVisualTransformation
-import com.example.to_do_list.android.view.afficherDialog
 import com.example.to_do_list.android.view.ajoutTache
 import com.example.to_do_list.android.view.felicitation
 import com.example.to_do_list.android.view.verifierValiditeDate
@@ -178,7 +176,7 @@ class MainActivity : ComponentActivity() {
                                 composable(
                                     route = "ajouterTaches"
                                 ) {
-                                    showDialog=true
+                                    showDialog = true
                                     AjouterTacheDialog(
                                         dialogVisible = showDialog,
                                         onDismissRequest = { showDialog = false }
@@ -186,14 +184,9 @@ class MainActivity : ComponentActivity() {
                                         ajoutTache(
                                             applicationContext = applicationContext,
                                             navController = navController,
-                                            fenetreSelectionnee = fenetreSelectionnee
-                                        )
+                                            fenetreActuelle = fenetreSelectionnee
+                                            )
                                     }
-                                    afficherDialog(
-                                        applicationContext = applicationContext ,
-                                        fenetreSelectionnee = fenetreSelectionnee,
-                                        navController = navController
-                                    )
                                 }
                                 composable(
                                     route = "listeTachesFinies"
@@ -274,7 +267,7 @@ class MainActivity : ComponentActivity() {
                                             contentDescription = null
                                         )
                                     },
-                                    label = { Text("Finie") })
+                                    label = { Text("Finies") })
                                 NavigationBarItem(
                                     colors = (androidx.compose.material3.NavigationBarItemDefaults
                                         .colors(
@@ -290,7 +283,7 @@ class MainActivity : ComponentActivity() {
                                             contentDescription = null
                                         )
                                     },
-                                    label = { Text("Avatar") })
+                                    label = { Text("Personnages") })
 
 
                             }
@@ -662,9 +655,9 @@ fun BackgroundDuSwipe(
 ) {
     val color = if (swipeDismissState.dismissDirection == DismissDirection.StartToEnd) {
         if (contraintes == "En cours" || contraintes == "En retard") {
-            Color.Green
+            Color(0xFFB3FFAD)
         } else {
-            Color.Red
+            Color(0xFFFFADAD)
         }
     } else {
         Color.Transparent
